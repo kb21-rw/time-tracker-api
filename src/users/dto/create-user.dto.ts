@@ -8,7 +8,7 @@ export enum UserRole {
 }
 
 export class CreateUserDto {
-    id: string
+    id: number
 
     @ApiProperty({
         example: 'Christelle',
