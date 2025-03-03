@@ -9,7 +9,7 @@ export class UsersService {
     { userId: 2, email: 'maria@gmail.com', password: 'guess' },
   ]
 
-  async findOne(email: string): Promise<User | undefined> {
+  async findByEmail(email: string): Promise<User | undefined> {
     return this.users.find(user => user.email === email)
   }
 }

@@ -10,7 +10,7 @@ describe('AppController', () => {
 
   beforeEach(async () => {
     const mockAuthService = { validateUser: jest.fn(), login: jest.fn() }
-    const mockUsersService = { findOne: jest.fn() }
+    const mockUsersService = { findByEmail: jest.fn() }
     const mockJwtService = { sign: jest.fn() }
 
     const app: TestingModule = await Test.createTestingModule({
