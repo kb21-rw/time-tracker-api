@@ -6,8 +6,12 @@ import { ValidationPipe } from '@nestjs/common'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
-
-  app.useGlobalPipes( new ValidationPipe())
+  app.useGlobalPipes(
+    new ValidationPipe({
+      forbidNonWhitelisted: true, //Rejects requests that have extra properties
+      transform: true, //Automatically converts request data into the correct type (DTO class instance)
+    }),
+  )
   const options = new DocumentBuilder()
     .setTitle('Time Tracking API')
     .setDescription('This is a simple API for tracking time spent on projects.')

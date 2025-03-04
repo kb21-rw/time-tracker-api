@@ -50,4 +50,8 @@ export class UsersService {
   remove(id: number) {
     return this.usersRepository.delete(id)
   }
+
+  async findByEmail(email: string): Promise<User | undefined> {
+    return this.usersRepository.findOne({where: {email}})
+  }
 }
