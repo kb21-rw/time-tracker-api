@@ -2,9 +2,12 @@ import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
 import { AppModule } from './app.module'
+import { ValidationPipe } from '@nestjs/common'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
+
+  app.useGlobalPipes( new ValidationPipe())
   const options = new DocumentBuilder()
     .setTitle('Time Tracking API')
     .setDescription('This is a simple API for tracking time spent on projects.')
