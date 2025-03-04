@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from 'src/util/role.enum';
@@ -25,11 +25,22 @@ export class UsersService {
       roles: UserRole.Admin,
       password: hashedPassword
     })
-    return this.usersRepository.save(newUser)
+    try {
+      return this.usersRepository.save(newUser)
+    } catch(error) {
+      if(error.code === '23505'){
+        throw new ConflictException('Email is already exists')
+      }
+      throw error
+    }
   }
 
   findOne(id: number) {
-    return this.usersRepository.findOneBy({ id })
+   const user = this.usersRepository.findOne({where : { id }})
+    if(!user){
+      throw new NotFoundException('User not found')
+    }
+     return user
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
