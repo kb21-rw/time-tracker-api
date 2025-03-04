@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { UserRole } from "../dto/create-user.dto";
+import { UserRole } from "src/util/role.enum";
 import { Exclude } from "class-transformer";
 
 @Entity()
@@ -8,7 +8,7 @@ export class User {
     id: number
 
     @Column()
-    name: string
+    fullName: string
 
     @Column()
     email: string
