@@ -22,7 +22,7 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10)
     const newUser = this.usersRepository.create({
       ...createUserDto,
-      roles: UserRole.Admin,
+      role: UserRole.Admin,
       password: hashedPassword
     })
     try {
