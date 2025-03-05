@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { User } from 'src/users/entities/user.entity'
 import * as bcrypt from 'bcrypt'
@@ -17,11 +17,14 @@ export class AuthService {
     password: string,
   ): Promise<Partial<User> | UnauthorizedException> {
     const user = await this.userRepository.findOne({ where: { email } })
-    if (user && (await bcrypt.compare(password, user.password))) {
+    if (!user) {
+      throw new NotFoundException("User doesn't exist")
+    }
+    if (await bcrypt.compare(password, user.password)) {
       const { password, ...userWithNoPassword } = user
       return userWithNoPassword
     } else {
-      return new UnauthorizedException('Invalid Credentials')
+      throw new UnauthorizedException("Email and password don't match")
     }
   }
   async login(user: Partial<User>): Promise<{
