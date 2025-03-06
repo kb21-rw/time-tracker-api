@@ -39,8 +39,7 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid email or password' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  @UseGuards(LocalAuthGuard)
-  async login(@Request() req) {
-    return this.authService.login(req.user)
+  login(@Body() loginRequest: LoginUserDto) {
+    return this.authService.login(loginRequest)
   }
 }

@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { User } from 'src/users/entities/user.entity'
 import * as bcrypt from 'bcrypt'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
+import { LoginUserDto } from './dto/login-user.dto'
 @Injectable()
 export class AuthService {
   constructor(
@@ -13,14 +18,15 @@ export class AuthService {
   ) {}
 
   async validateUser(
-    email: string,
-    password: string,
+    data: LoginUserDto,
   ): Promise<Partial<User> | UnauthorizedException> {
-    const user = await this.userRepository.findOne({ where: { email } })
+    const user = await this.userRepository.findOne({
+      where: { email: data.email },
+    })
     if (!user) {
       throw new NotFoundException("User doesn't exist")
     }
-    if (await bcrypt.compare(password, user.password)) {
+    if (await bcrypt.compare(data.password, user.password)) {
       const { password, ...userWithNoPassword } = user
       return userWithNoPassword
     } else {
@@ -30,9 +36,7 @@ export class AuthService {
   async login(user: Partial<User>): Promise<{
     user: Partial<User>
     access_token: string
-  }>
- 
-  {
+  }> {
     const payload = {
       email: user?.email,
       role: user?.roles,
