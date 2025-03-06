@@ -38,6 +38,7 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Invalid email or password' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   login(@Body() loginRequest: LoginUserDto) {
     return this.authService.login(loginRequest)
