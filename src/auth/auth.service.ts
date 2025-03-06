@@ -33,7 +33,7 @@ export class AuthService {
       throw new UnauthorizedException("Email and password don't match")
     }
   }
-  async login(data: LoginUserDto,): Promise<{
+  async login(data: LoginUserDto): Promise<{
     user: Partial<User>
     access_token: string
   }> {
