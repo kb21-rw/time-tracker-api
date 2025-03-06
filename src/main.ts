@@ -10,6 +10,7 @@ async function bootstrap() {
     new ValidationPipe({
       forbidNonWhitelisted: true, //Rejects requests that have extra properties
       transform: true, //Automatically converts request data into the correct type (DTO class instance)
+      whitelist: true, //Removes properties that do not have decorators
     }),
   )
   const options = new DocumentBuilder()

@@ -1,7 +1,15 @@
-import { Controller, Post, Body, HttpCode } from '@nestjs/common'
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  UseGuards,
+  Request,
+} from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
-import { LoginDto } from 'src/user/dto/login.dto'
+import { LoginUserDto } from './dto/login-user.dto'
+import { LocalAuthGuard } from './local-auth.guard'
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -11,14 +19,28 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   @ApiOperation({ summary: 'User login' })
-  @ApiBody({ type: LoginDto })
+  @ApiBody({ type: LoginUserDto })
   @ApiResponse({
     status: 200,
     description: 'Login successful',
-    schema: { example: { access_token: 'jwt-token' } },
+    schema: {
+      example: {
+        user: {
+          id: 3,
+          fullName: 'Jackson Eric',
+          email: 'jackson@gmail.com',
+          roles: 'Admin',
+        },
+        access_token:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImphY2tzb25AZ21haWwuY29tIiwicm9sZSI6IkFkbWluIiwiaWQiOjMsImlhdCI6MTc0MTE4MTcyMSwiZXhwIjoxNzQxMTg1MzIxfQ.28Kz5VQUkLkD-P5LLPUUID0YahXYnHJS30HkwfQZXEA',
+      },
+    },
   })
   @ApiResponse({ status: 401, description: 'Invalid email or password' })
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto)
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  login(@Body() loginRequest: LoginUserDto) {
+    return this.authService.login(loginRequest)
   }
 }

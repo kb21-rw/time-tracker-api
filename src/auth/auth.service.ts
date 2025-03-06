@@ -1,30 +1,59 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { UsersService } from '../users/users.service'
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-
+import { User } from 'src/users/entities/user.entity'
+import * as bcrypt from 'bcrypt'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { LoginUserDto } from './dto/login-user.dto'
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email)
-    if (user && user.password === pass) {
-      const { password, ...result } = user
-      return result
-    }
-    return null
-  }
-  async login(loginDto: { email: string; password: string }) {
-    const user = await this.validateUser(loginDto.email, loginDto.password)
+  async validateUser(
+    data: LoginUserDto,
+  ): Promise<Omit<User, 'password'>> {
+    const user = await this.userRepository.findOne({
+      where: { email: data.email },
+    })
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password')
+      throw new NotFoundException("User doesn't exist")
     }
-    const payload = { email: user.email, sub: user.id }
+    if (await bcrypt.compare(data.password, user.password)) {
+      const { password, ...userWithNoPassword } = user
+      return userWithNoPassword
+    } else {
+      throw new UnauthorizedException("Email and password don't match")
+    }
+  }
+  async login(data: LoginUserDto): Promise<{
+    user: Partial<User>
+    access_token: string
+  }> {
+
+    const user = await this.validateUser(data)
+
+    const payload = {
+      email: user?.email,
+      role: user?.roles,
+      id: user?.id,
+    }
+    if (!user?.id) {
+      throw new UnauthorizedException('Invalid user data')
+    }
+
     return {
-      access_token: this.jwtService.sign(payload),
+      user,
+      access_token: this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+      }),
     }
   }
 }
