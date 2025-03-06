@@ -19,7 +19,7 @@ export class AuthService {
 
   async validateUser(
     data: LoginUserDto,
-  ): Promise<Partial<User> | UnauthorizedException> {
+  ): Promise<Omit<User, 'password'>> {
     const user = await this.userRepository.findOne({
       where: { email: data.email },
     })
@@ -33,10 +33,13 @@ export class AuthService {
       throw new UnauthorizedException("Email and password don't match")
     }
   }
-  async login(user: Partial<User>): Promise<{
+  async login(data: LoginUserDto,): Promise<{
     user: Partial<User>
     access_token: string
   }> {
+
+    const user = await this.validateUser(data)
+
     const payload = {
       email: user?.email,
       role: user?.roles,
@@ -46,10 +49,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid user data')
     }
 
-    const { password, ...userWithoutPassword } = user
-
     return {
-      user: userWithoutPassword,
+      user,
       access_token: this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
       }),
