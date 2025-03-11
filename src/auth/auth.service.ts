@@ -17,36 +17,29 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(
-    data: LoginUserDto,
-  ): Promise<Omit<User, 'password'>> {
+  async validateUser(data: LoginUserDto): Promise<Omit<User, 'password'>> {
     const user = await this.userRepository.findOne({
       where: { email: data.email },
     })
     if (!user) {
       throw new NotFoundException("User doesn't exist")
     }
-    if (await bcrypt.compare(data.password, user.password)) {
-      const { password, ...userWithNoPassword } = user
-      return userWithNoPassword
-    } else {
+    const isPasswordValid = await bcrypt.compare(data.password, user.password)
+    if (!isPasswordValid)
       throw new UnauthorizedException("Email and password don't match")
-    }
+    const { password, ...userWithNoPassword } = user
+    return userWithNoPassword
   }
   async login(data: LoginUserDto): Promise<{
     user: Partial<User>
     access_token: string
   }> {
-
     const user = await this.validateUser(data)
 
     const payload = {
       email: user?.email,
       role: user?.roles,
       id: user?.id,
-    }
-    if (!user?.id) {
-      throw new UnauthorizedException('Invalid user data')
     }
 
     return {
