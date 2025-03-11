@@ -51,9 +51,6 @@ export class AuthService {
       role: user?.roles,
       id: user?.id,
     }
-    if (!user?.id) {
-      throw new UnauthorizedException('Invalid user data')
-    }
 
     return {
       user,
