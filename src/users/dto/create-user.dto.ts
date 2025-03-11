@@ -6,7 +6,7 @@ export class CreateUserDto {
         example: 'Christelle Gihozo',
         required: true
     })
-    @IsNotEmpty({message: 'Fullname is required'})
+    @IsNotEmpty()
     fullName: string
 
     @ApiProperty({
@@ -14,7 +14,7 @@ export class CreateUserDto {
         required: true
     })
     @IsEmail()
-    @IsNotEmpty({message: 'Email is required'})
+    @IsNotEmpty()
     email: string
 
     @ApiProperty({
@@ -22,6 +22,6 @@ export class CreateUserDto {
         required: true
     })
     @MinLength(8)
-    @IsNotEmpty({message: 'Password is required'})
+    @IsNotEmpty()
     password: string
 }
