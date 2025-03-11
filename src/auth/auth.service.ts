@@ -20,18 +20,24 @@ export class AuthService {
   async validateUser(
     data: LoginUserDto,
   ): Promise<Omit<User, 'password'>> {
+
     const user = await this.userRepository.findOne({
       where: { email: data.email },
     })
+
     if (!user) {
-      throw new NotFoundException("User doesn't exist")
+      throw new NotFoundException("Email or password is incorrect")
     }
-    if (await bcrypt.compare(data.password, user.password)) {
-      const { password, ...userWithNoPassword } = user
-      return userWithNoPassword
-    } else {
-      throw new UnauthorizedException("Email and password don't match")
-    }
+
+    const isPasswordValid = await bcrypt.compare(data.password, user.password)
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException("Email or password is incorrect")
+    } 
+
+    const { password, ...userWithNoPassword } = user
+    return userWithNoPassword
+
   }
   async login(data: LoginUserDto): Promise<{
     user: Partial<User>
