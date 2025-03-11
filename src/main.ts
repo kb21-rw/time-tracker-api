@@ -6,6 +6,7 @@ import { ValidationPipe } from '@nestjs/common'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
+
   app.useGlobalPipes(
     new ValidationPipe({
       forbidNonWhitelisted: true, //Rejects requests that have extra properties
@@ -13,6 +14,7 @@ async function bootstrap() {
       whitelist: true, //Removes properties that do not have decorators
     }),
   )
+
   const options = new DocumentBuilder()
     .setTitle('Time Tracking API')
     .setDescription('This is a simple API for tracking time spent on projects.')
@@ -25,9 +27,10 @@ async function bootstrap() {
   SwaggerModule.setup('api-docs', app, document)
 
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   })
+  
   await app.listen(3000)
 }
 bootstrap()

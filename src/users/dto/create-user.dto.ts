@@ -3,7 +3,7 @@ import { IsEmail, IsNotEmpty, MinLength} from "class-validator"
 
 export class CreateUserDto {
     @ApiProperty({
-        example: 'Christelle',
+        example: 'Christelle Gihozo',
         required: true
     })
     @IsNotEmpty({message: 'Fullname is required'})
