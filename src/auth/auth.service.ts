@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -9,14 +10,14 @@ import * as bcrypt from 'bcrypt'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { LoginUserDto } from './dto/login-user.dto'
-import { UsersService } from 'src/users/users.service'
 import { CreateUserDto } from 'src/users/dto/create-user.dto'
+import { UserRole } from 'src/util/role.enum'
+import { plainToInstance } from 'class-transformer'
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    private userService: UsersService,
     private jwtService: JwtService,
   ) {}
 
@@ -65,7 +66,30 @@ export class AuthService {
     }
   }
 
-  async signup(createUserDto: CreateUserDto){
-    return await this.userService.create(createUserDto)
-  }
+ async signup(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
+     const userExist = await this.userRepository.findOne({
+       where: { email: createUserDto.email },
+     })
+
+     if (userExist) {
+       throw new ConflictException('User already exists')
+     }
+
+     const hashedPassword = await bcrypt.hash(createUserDto.password, 10)
+     const newUser = this.userRepository.create({
+       ...createUserDto,
+       roles: UserRole.Admin,
+       password: hashedPassword
+     })
+
+        try {
+          const savedUser = await this.userRepository.save(newUser);
+          const { password, ...userWithNoPassword } = savedUser;
+          
+          return userWithNoPassword;
+        } catch (error) {
+          throw error;
+        }
+   }
+ 
 }

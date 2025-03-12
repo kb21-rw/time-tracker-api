@@ -22,26 +22,7 @@ export class UsersService {
     return this.usersRepository.find()
   }
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const userExist = await this.usersRepository.findOne({
-      where: { email: createUserDto.email },
-    })
-    if (userExist) {
-      throw new ConflictException('User already exists')
-    }
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10)
-    const newUser = this.usersRepository.create({
-      ...createUserDto,
-      roles: UserRole.Admin,
-      password: hashedPassword
-    })
-    try {
-      return this.usersRepository.save(newUser)
-    } catch (error) {
-      throw error
-    }
-  }
-
+  
   findOne(id: number) {
    const user = this.usersRepository.findOne({where : { id }})
     if(!user){
