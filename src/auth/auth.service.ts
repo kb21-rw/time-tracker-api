@@ -9,11 +9,14 @@ import * as bcrypt from 'bcrypt'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { LoginUserDto } from './dto/login-user.dto'
+import { UsersService } from 'src/users/users.service'
+import { CreateUserDto } from 'src/users/dto/create-user.dto'
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private userService: UsersService,
     private jwtService: JwtService,
   ) {}
 
@@ -39,6 +42,8 @@ export class AuthService {
     return userWithNoPassword
 
   }
+
+
   async login(data: LoginUserDto): Promise<{
     user: Partial<User>
     access_token: string
@@ -58,5 +63,9 @@ export class AuthService {
         secret: process.env.JWT_SECRET,
       }),
     }
+  }
+
+  async signup(createUserDto: CreateUserDto){
+    return await this.userService.create(createUserDto)
   }
 }
