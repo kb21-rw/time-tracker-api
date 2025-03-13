@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -13,12 +14,16 @@ import { LoginUserDto } from './dto/login-user.dto'
 import { CreateUserDto } from 'src/users/dto/create-user.dto'
 import { UserRole } from 'src/util/role.enum'
 import { plainToInstance } from 'class-transformer'
+import { ForgotPasswordDto } from './dto/forgot-password-dto'
+import { EmailService } from 'src/email/email.service'
+import { ResetPasswordDto } from './dto/reset-passoword-dto'
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private jwtService: JwtService,
+    private emailService: EmailService
   ) {}
 
   async validateUser(
@@ -91,5 +96,48 @@ export class AuthService {
           throw error;
         }
    }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto){
+     const user = await this.userRepository.findOne({
+      where: { email: forgotPasswordDto.email },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`No user found for This email`)
+    }
+
+    await this.emailService.sendResetPasswordLink(user.email, user.id);
+    return { 
+      message: 'If your email is registered, you will receive a password reset link' 
+    };
+
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
+    try {
+      const payload = this.jwtService.verify(resetPasswordDto.token, {
+        secret: process.env.JWT_VERIFICATION_TOKEN_SECRET,
+      });
+
+      const user = await this.userRepository.findOne({
+        where: { id: payload.userId, email: payload.email },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, 10);
+      
+      // Update user's password
+      user.password = hashedPassword;
+      await this.userRepository.save(user);
+
+      return { message: 'Password successfully reset' };
+    } catch (error) {
+      throw new BadRequestException('Invalid or expired token');
+    }
+  }
  
 }

@@ -5,12 +5,15 @@ import {
   HttpCode,
   UseGuards,
   Request,
+  HttpStatus,
 } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
 import { LoginUserDto } from './dto/login-user.dto'
 import { LocalAuthGuard } from './local-auth.guard'
 import { CreateUserDto } from 'src/users/dto/create-user.dto'
+import { ForgotPasswordDto } from './dto/forgot-password-dto'
+import { ResetPasswordDto } from './dto/reset-passoword-dto'
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -66,6 +69,18 @@ export class AuthController {
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   signup(@Body() createUserDto: CreateUserDto) {
     return this.authService.signup(createUserDto);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
   }
  
 }
