@@ -30,13 +30,13 @@ export class AuthService {
     })
 
     if (!user) {
-      throw new NotFoundException("Email or password is incorrect")
+      throw new NotFoundException("Invalid credentials: check your email or password")
     }
 
     const isPasswordValid = await bcrypt.compare(data.password, user.password)
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException("Email or password is incorrect")
+      throw new UnauthorizedException("Invalid credentials: check your email or password")
     } 
 
     const { password, ...userWithNoPassword } = user
