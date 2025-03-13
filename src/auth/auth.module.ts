@@ -9,6 +9,7 @@ import { JwtStrategy } from './jwt.strategy'
 import { AuthController } from './auth.controller'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { User } from 'src/users/entities/user.entity'
+import { EmailModule } from 'src/email/email.module'
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { User } from 'src/users/entities/user.entity'
     ConfigModule.forRoot(),
     UsersModule,
     PassportModule,
+    EmailModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'defaulySecretKey', 
       signOptions: { expiresIn: '60m' },
