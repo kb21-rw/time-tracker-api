@@ -13,10 +13,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(data: LoginUserDto) {
-    const user = await this.authService.validateUser(data)
-    if (user instanceof UnauthorizedException) {
-      throw user
-    }
-    return user
+    return await this.authService.validateUser(data)
   }
 }

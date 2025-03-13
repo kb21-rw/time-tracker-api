@@ -7,6 +7,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      // This is a temporary solution. Currently, we only use access tokens.
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
     })
@@ -14,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     return {
-      id: payload.sub.id,
+      id: payload.id,
       email: payload.email,
       roles: payload.role,
       fullName: payload.fullName,

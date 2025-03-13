@@ -10,6 +10,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
 import { LoginUserDto } from './dto/login-user.dto'
 import { LocalAuthGuard } from './local-auth.guard'
+import { CreateUserDto } from 'src/users/dto/create-user.dto'
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -43,4 +44,28 @@ export class AuthController {
   login(@Body() loginRequest: LoginUserDto) {
     return this.authService.login(loginRequest)
   }
+
+  @Post('signup')
+  @HttpCode(201)
+  @ApiOperation({summary: 'Create new User'})
+  @ApiResponse({ 
+     status: 201,
+     schema: {
+      example: {
+        message: 'User registered successfully',
+        user: {
+          id: 5,
+          fullName: 'Christelle Gihozo',
+          email: 'christelle@gmail.com',
+          roles: 'Admin',
+        },
+      },
+    },
+   })
+  @ApiResponse({ status: 400, description: 'Bad Request. Missing or invalid inputs.' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  signup(@Body() createUserDto: CreateUserDto) {
+    return this.authService.signup(createUserDto);
+  }
+ 
 }

@@ -1,22 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Delete, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+
 
 @ApiTags('users')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
-
-  @Post()
-  @ApiOperation({summary: 'Create new User'})
-  @ApiResponse({ status: 201, description: 'User created successfully' })
-  @ApiResponse({ status: 400, description: 'Bad Request. Missing or invalid inputs.' })
-  @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
-  }
+  constructor(
+    private readonly usersService: UsersService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Returns all registered User' })
@@ -40,12 +36,5 @@ export class UsersController {
   update(@Param('id',ParseIntPipe)id: number, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
-
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete a specific User'})
-  @ApiResponse({ status: 200, description: 'The user has been successfully deleted.' })
-  @ApiResponse({ status: 404, description: 'User not found.' })
-  remove(@Param('id',ParseIntPipe)id: number) {
-    return this.usersService.remove(id);
-  }
+  
 }

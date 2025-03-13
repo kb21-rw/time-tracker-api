@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -9,6 +10,9 @@ import * as bcrypt from 'bcrypt'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { LoginUserDto } from './dto/login-user.dto'
+import { CreateUserDto } from 'src/users/dto/create-user.dto'
+import { UserRole } from 'src/util/role.enum'
+import { plainToInstance } from 'class-transformer'
 @Injectable()
 export class AuthService {
   constructor(
@@ -20,19 +24,27 @@ export class AuthService {
   async validateUser(
     data: LoginUserDto,
   ): Promise<Omit<User, 'password'>> {
+
     const user = await this.userRepository.findOne({
       where: { email: data.email },
     })
+
     if (!user) {
-      throw new NotFoundException("User doesn't exist")
+      throw new NotFoundException("Invalid credentials: check your email or password")
     }
-    if (await bcrypt.compare(data.password, user.password)) {
-      const { password, ...userWithNoPassword } = user
-      return userWithNoPassword
-    } else {
-      throw new UnauthorizedException("Email and password don't match")
-    }
+
+    const isPasswordValid = await bcrypt.compare(data.password, user.password)
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException("Invalid credentials: check your email or password")
+    } 
+
+    const { password, ...userWithNoPassword } = user
+    return userWithNoPassword
+
   }
+
+
   async login(data: LoginUserDto): Promise<{
     user: Partial<User>
     access_token: string
@@ -45,9 +57,6 @@ export class AuthService {
       role: user?.roles,
       id: user?.id,
     }
-    if (!user?.id) {
-      throw new UnauthorizedException('Invalid user data')
-    }
 
     return {
       user,
@@ -56,4 +65,31 @@ export class AuthService {
       }),
     }
   }
+
+ async signup(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
+     const userExist = await this.userRepository.findOne({
+       where: { email: createUserDto.email },
+     })
+
+     if (userExist) {
+       throw new ConflictException('User already exists')
+     }
+
+     const hashedPassword = await bcrypt.hash(createUserDto.password, 10)
+     const newUser = this.userRepository.create({
+       ...createUserDto,
+       roles: UserRole.Admin,
+       password: hashedPassword
+     })
+
+        try {
+          const savedUser = await this.userRepository.save(newUser);
+          const { password, ...userWithNoPassword } = savedUser;
+          
+          return userWithNoPassword;
+        } catch (error) {
+          throw error;
+        }
+   }
+ 
 }
