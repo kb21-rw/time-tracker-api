@@ -73,12 +73,34 @@ export class AuthController {
 
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: 200,
+    description: 'Reset email sent successfully',
+    schema: {
+      example: {
+        message: 'You will receive an email to reset your password'
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request. Invalid email' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto);
   }
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset successful',
+    schema: {
+      example: {
+        message: 'Password successfully reset'
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request. Invalid Token' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
   }
