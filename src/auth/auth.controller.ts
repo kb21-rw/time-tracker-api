@@ -10,10 +10,9 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
 import { LoginUserDto } from './dto/login-user.dto'
-import { LocalAuthGuard } from './local-auth.guard'
 import { CreateUserDto } from 'src/users/dto/create-user.dto'
 import { ForgotPasswordDto } from './dto/forgot-password-dto'
-import { ResetPasswordDto } from './dto/reset-passoword-dto'
+import { ResetPasswordDto } from './dto/reset-password-dto'
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -50,10 +49,10 @@ export class AuthController {
 
   @Post('signup')
   @HttpCode(201)
-  @ApiOperation({summary: 'Create new User'})
-  @ApiResponse({ 
-     status: 201,
-     schema: {
+  @ApiOperation({ summary: 'Create new User' })
+  @ApiResponse({
+    status: 201,
+    schema: {
       example: {
         message: 'User registered successfully',
         user: {
@@ -64,45 +63,52 @@ export class AuthController {
         },
       },
     },
-   })
-  @ApiResponse({ status: 400, description: 'Bad Request. Missing or invalid inputs.' })
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Missing or invalid inputs.',
+  })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   signup(@Body() createUserDto: CreateUserDto) {
-    return this.authService.signup(createUserDto);
+    return this.authService.signup(createUserDto)
   }
 
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Forgot Password' })
+  @ApiBody({ type: ForgotPasswordDto })
   @ApiResponse({
     status: 200,
     description: 'Reset email sent successfully',
     schema: {
       example: {
-        message: 'You will receive an email to reset your password'
-      }
-    }
+        message:
+          'a password reset link was sent to your email. Please check your inbox.',
+      },
+    },
   })
   @ApiResponse({ status: 400, description: 'Bad Request. Invalid email' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-    return this.authService.forgotPassword(forgotPasswordDto);
+    return this.authService.forgotPassword(forgotPasswordDto)
   }
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Password reset' })
+  @ApiBody({ type: ResetPasswordDto })
   @ApiResponse({
     status: 200,
     description: 'Password reset successful',
     schema: {
       example: {
-        message: 'Password successfully reset'
-      }
-    }
+        message: 'Password successfully reset',
+      },
+    },
   })
   @ApiResponse({ status: 400, description: 'Bad Request. Invalid Token' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-    return this.authService.resetPassword(resetPasswordDto);
+    return this.authService.resetPassword(resetPasswordDto)
   }
- 
 }
