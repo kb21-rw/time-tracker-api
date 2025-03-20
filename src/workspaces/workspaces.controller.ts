@@ -9,7 +9,6 @@ import {
   HttpCode,
 } from '@nestjs/common'
 import { WorkspacesService } from './workspaces.service'
-import { AuthGuard } from '@nestjs/passport'
 import { RequestWithUser } from 'src/auth/types/request-with-user'
 import {
   ApiTags,
@@ -18,11 +17,12 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger'
 import { CreateWorkspaceDto } from 'src/workspaces/dto/create-workspace.dto'
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
 @Controller('workspaces')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(JwtAuthGuard)
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
