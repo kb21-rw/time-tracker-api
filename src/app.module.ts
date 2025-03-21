@@ -3,9 +3,12 @@ import { ConfigModule } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
 import { User } from './users/entities/user.entity'
-import { UsersModule } from './users/users.module';
+import { UsersModule } from './users/users.module'
 import { AuthModule } from './auth/auth.module'
-import { EmailModule } from './email/email.module';
+import { EmailModule } from './email/email.module'
+import { Workspace } from './workspaces/entities/workspace.entity'
+import { UserWorkspace } from './workspaces/entities/user-workspace.entity'
+import { WorkspacesModule } from './workspaces/workspaces.module'
 
 @Module({
   imports: [
@@ -21,7 +24,7 @@ import { EmailModule } from './email/email.module';
         username: process.env.DB_USERNAME,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
-        entities: [User],
+        entities: [User, Workspace, UserWorkspace],
         synchronize: true,
 
         ssl:
@@ -30,6 +33,7 @@ import { EmailModule } from './email/email.module';
             : false,
       }),
     }),
+    WorkspacesModule,
     UsersModule,
     EmailModule,
   ],
