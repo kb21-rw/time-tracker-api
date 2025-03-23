@@ -23,12 +23,14 @@ export class WorkspacesService {
     if (user.roles !== UserRole.ADMIN) {
       throw new ForbiddenException(`Dear user, you can't create a workspace`)
     }
-    const existingWorkspace = await this.userWorkspaceRepository.findOne({
+    const existingWorkspaces = await this.userWorkspaceRepository.find({
       where: { userId: String(user.id) },
       relations: ['workspace'],
     })
-
-    if (existingWorkspace && existingWorkspace.workspace.name === name) {
+    const existingWorkspace = existingWorkspaces.find(
+      existingWorkspace => existingWorkspace.workspace.name === name,
+    )
+    if (existingWorkspace) {
       throw new ConflictException(
         `A workspace with the name ${name} already exists`,
       )
@@ -58,7 +60,7 @@ export class WorkspacesService {
       : `You are in zero workspaces.`
   }
 
-  async getWorkspaceById(
+  async findAvailableById(
     userId: string,
     workspaceId: string,
   ): Promise<Workspace> {
