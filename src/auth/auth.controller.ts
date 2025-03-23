@@ -1,16 +1,7 @@
-import {
-  Controller,
-  Post,
-  Body,
-  HttpCode,
-  UseGuards,
-  Request,
-  HttpStatus,
-} from '@nestjs/common'
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
 import { LoginUserDto } from './dto/login-user.dto'
-import { LocalAuthGuard } from './local-auth.guard'
 import { CreateUserDto } from 'src/users/dto/create-user.dto'
 import { ForgotPasswordDto } from './dto/forgot-password-dto'
 import { ResetPasswordDto } from './dto/reset-passoword-dto'
