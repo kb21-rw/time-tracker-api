@@ -85,14 +85,10 @@ export class AuthService {
       password: hashedPassword,
     })
 
-    try {
-      const savedUser = await this.userRepository.save(newUser)
-      const { password, ...userWithNoPassword } = savedUser
+    const savedUser = await this.userRepository.save(newUser)
+    const { password, ...userWithNoPassword } = savedUser
 
-      return userWithNoPassword
-    } catch (error) {
-      throw error
-    }
+    return userWithNoPassword
   }
 
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
