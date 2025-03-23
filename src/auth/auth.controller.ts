@@ -14,7 +14,7 @@ import { LocalAuthGuard } from './local-auth.guard'
 import { CreateUserDto } from 'src/users/dto/create-user.dto'
 import { ForgotPasswordDto } from './dto/forgot-password-dto'
 import { ResetPasswordDto } from './dto/reset-passoword-dto'
-
+import { UserRole } from '../util/role.enum'
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
@@ -33,7 +33,7 @@ export class AuthController {
           id: 3,
           fullName: 'Jackson Eric',
           email: 'jackson@gmail.com',
-          roles: 'ADMIN',
+          roles: UserRole.ADMIN,
         },
         access_token:
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImphY2tzb25AZ21haWwuY29tIiwicm9sZSI6IkFkbWluIiwiaWQiOjMsImlhdCI6MTc0MTE4MTcyMSwiZXhwIjoxNzQxMTg1MzIxfQ.28Kz5VQUkLkD-P5LLPUUID0YahXYnHJS30HkwfQZXEA',
@@ -60,7 +60,7 @@ export class AuthController {
           id: 5,
           fullName: 'Christelle Gihozo',
           email: 'christelle@gmail.com',
-          roles: 'ADMIN',
+          roles: UserRole.ADMIN,
         },
       },
     },
