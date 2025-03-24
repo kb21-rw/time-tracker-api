@@ -20,9 +20,6 @@ export class WorkspacesService {
   ) {}
 
   async createWorkspace(user: User, { name }): Promise<Workspace> {
-    if (user.roles !== UserRole.ADMIN) {
-      throw new ForbiddenException(`Dear user, you can't create a workspace`)
-    }
     const existingWorkspaces = await this.userWorkspaceRepository.find({
       where: { userId: String(user.id) },
       relations: ['workspace'],
@@ -49,7 +46,7 @@ export class WorkspacesService {
     return workspace
   }
 
-  async getUserWorkspaces(userId: string): Promise<Workspace[] | string> {
+  async findByUser(userId: string): Promise<Workspace[] | string> {
     const userWorkspaces = await this.userWorkspaceRepository.find({
       where: { userId },
       relations: ['workspace'],
@@ -66,6 +63,7 @@ export class WorkspacesService {
   ): Promise<Workspace> {
     const userWorkspace = await this.userWorkspaceRepository.findOne({
       where: { userId, workspaceId },
+      relations: ['workspace'],
     })
 
     if (!userWorkspace) {
@@ -73,7 +71,6 @@ export class WorkspacesService {
         "Dear user, you don't belong in this workspace",
       )
     }
-
-    return this.workspaceRepository.findOne({ where: { id: workspaceId } })
+    return userWorkspace.workspace
   }
 }
