@@ -1,14 +1,11 @@
-import {
-  Injectable,
-  ForbiddenException,
-  ConflictException,
-} from '@nestjs/common'
+import { Injectable, ForbiddenException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Workspace } from './entities/workspace.entity'
 import { UserWorkspace } from './entities/user-workspace.entity'
 import { User } from '../users/entities/user.entity'
 import { UserRole } from '../util/role.enum'
+import { verifyIfNameNotTaken } from 'src/util/helpers'
 
 @Injectable()
 export class WorkspacesService {
@@ -19,7 +16,7 @@ export class WorkspacesService {
     private userWorkspaceRepository: Repository<UserWorkspace>,
   ) {}
 
-  async createWorkspace(user: User, { name }): Promise<Workspace> {
+  async create(user: User, { name }): Promise<Workspace> {
     const existingWorkspaces = await this.userWorkspaceRepository.find({
       where: { userId: String(user.id) },
       relations: ['workspace'],
@@ -27,21 +24,21 @@ export class WorkspacesService {
     const existingWorkspace = existingWorkspaces.find(
       existingWorkspace => existingWorkspace.workspace.name === name,
     )
-    if (existingWorkspace) {
-      throw new ConflictException(
-        `A workspace with the name ${name} already exists`,
-      )
-    }
-    const workspace = this.workspaceRepository.create({ name })
+    verifyIfNameNotTaken(existingWorkspace)
+    const workspace = this.workspaceRepository.create({
+      name,
+    })
 
-    await this.workspaceRepository.save(workspace)
+    const savedWorkspace = await this.workspaceRepository.save(workspace)
 
     const userWorkspace = this.userWorkspaceRepository.create({
       userId: String(user.id),
-      workspaceId: workspace.id,
+      workspaceId: savedWorkspace.id,
       role: UserRole.ADMIN,
     })
-
+    if (!workspace.id) {
+      throw new Error('Workspace ID is missing')
+    }
     await this.userWorkspaceRepository.save(userWorkspace)
     return workspace
   }
