@@ -60,11 +60,11 @@ export class WorkspacesController {
     description: 'A workspace with the same name already exists',
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async createWorkspace(
+  async create(
     @Req() req: RequestWithUser,
     @Body() createWorkspaceDto: CreateWorkspaceDto,
   ) {
-    return this.workspacesService.createWorkspace(req.user, createWorkspaceDto)
+    return this.workspacesService.create(req.user, createWorkspaceDto)
   }
 
   @Get()
