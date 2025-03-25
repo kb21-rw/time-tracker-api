@@ -33,6 +33,4 @@ export class User {
 
   @UpdateDateColumn()
   updated_at: Date
-  @OneToMany(() => UserWorkspace, userWorkspace => userWorkspace.user)
-  userWorkspaces: UserWorkspace[]
 }
