@@ -18,6 +18,7 @@ import {
 } from '@nestjs/swagger'
 import { CreateWorkspaceDto } from 'src/workspaces/dto/create-workspace.dto'
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
+import { RolesGuard } from 'src/guards/rolesGuard'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -25,7 +26,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
 @UseGuards(JwtAuthGuard)
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
-
+  @UseGuards(RolesGuard)
   @Post()
   @HttpCode(201)
   @ApiOperation({ summary: 'Create a new workspace' })
@@ -59,11 +60,11 @@ export class WorkspacesController {
     description: 'A workspace with the same name already exists',
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async createWorkspace(
+  async create(
     @Req() req: RequestWithUser,
     @Body() createWorkspaceDto: CreateWorkspaceDto,
   ) {
-    return this.workspacesService.createWorkspace(req.user, createWorkspaceDto)
+    return this.workspacesService.create(req.user, createWorkspaceDto)
   }
 
   @Get()
@@ -91,7 +92,7 @@ export class WorkspacesController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   findAll(@Req() req: RequestWithUser) {
-    return this.workspacesService.getUserWorkspaces(req.user.id)
+    return this.workspacesService.findByUser(req.user.id)
   }
 
   @Get(':id')
@@ -116,6 +117,6 @@ export class WorkspacesController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   findOne(@Req() req: RequestWithUser, @Param('id') id: string) {
-    return this.workspacesService.getWorkspaceById(req.user.id, id)
+    return this.workspacesService.findAvailableById(req.user.id, id)
   }
 }

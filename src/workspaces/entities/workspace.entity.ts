@@ -6,7 +6,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm'
-import { UserWorkspace } from './user-workspace.entity'
 
 @Entity()
 export class Workspace {
@@ -21,7 +20,4 @@ export class Workspace {
 
   @UpdateDateColumn()
   updated_at: Date
-
-  @OneToMany(() => UserWorkspace, userWorkspace => userWorkspace.workspace)
-  userWorkspaces: UserWorkspace[]
 }

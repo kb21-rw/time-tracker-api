@@ -29,11 +29,13 @@ export class UserWorkspace {
   @UpdateDateColumn()
   updated_at: Date
 
-  @ManyToOne(() => User, user => user.userWorkspaces)
+  @ManyToOne(() => User, user => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User
 
-  @ManyToOne(() => Workspace, workspace => workspace.userWorkspaces)
+  @ManyToOne(() => Workspace, workspace => workspace.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'workspaceId' })
   workspace: Workspace
 }
