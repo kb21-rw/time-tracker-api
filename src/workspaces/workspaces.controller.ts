@@ -7,6 +7,7 @@ import {
   UseGuards,
   Req,
   HttpCode,
+  Put,
 } from '@nestjs/common'
 import { WorkspacesService } from './workspaces.service'
 import { RequestWithUser } from 'src/auth/types/request-with-user'
@@ -19,6 +20,7 @@ import {
 import { CreateWorkspaceDto } from 'src/workspaces/dto/create-workspace.dto'
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
 import { RolesGuard } from 'src/guards/rolesGuard'
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -118,5 +120,10 @@ export class WorkspacesController {
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   findOne(@Req() req: RequestWithUser, @Param('id') id: string) {
     return this.workspacesService.findAvailableById(req.user.id, id)
+  }
+
+  @Put(':id')
+  update(@Param('id') id:string, @Body()updatedWorkspaceDto: UpdateWorkspaceDto){
+    return this.workspacesService.update(id,updatedWorkspaceDto)
   }
 }
