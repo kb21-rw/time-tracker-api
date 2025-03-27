@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException } from '@nestjs/common'
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Workspace } from './entities/workspace.entity'
@@ -6,6 +6,7 @@ import { UserWorkspace } from './entities/user-workspace.entity'
 import { User } from '../users/entities/user.entity'
 import { UserRole } from '../util/role.enum'
 import { verifyIfNameNotTaken } from 'src/util/helpers'
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
 
 @Injectable()
 export class WorkspacesService {
@@ -69,5 +70,39 @@ export class WorkspacesService {
       )
     }
     return userWorkspace.workspace
+  }
+
+  async update(userId:string, workspaceId:string, updateWorkspaceDto: UpdateWorkspaceDto){
+
+
+    const workspace = await this.workspaceRepository.findOne({
+        where: {
+          id: workspaceId
+        }
+    })
+
+    if(!workspace){
+      throw new NotFoundException("Workspace not found")
+    }
+
+    const userWorkspace = await this.userWorkspaceRepository.findOne({
+      where: {
+        userId,
+        workspaceId
+      }
+    })
+
+    if(!userWorkspace) {
+      throw new ForbiddenException('Dear User you are not allowed to edit this workspace')
+    }
+
+
+    
+
+    await this.workspaceRepository.update({id: workspaceId},{name: updateWorkspaceDto.name})
+    return await this.workspaceRepository.findOne({
+      where: {
+        id:workspaceId
+    }})
   }
 }

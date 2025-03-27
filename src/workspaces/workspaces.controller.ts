@@ -7,6 +7,7 @@ import {
   UseGuards,
   Req,
   HttpCode,
+  Patch,
 } from '@nestjs/common'
 import { WorkspacesService } from './workspaces.service'
 import { RequestWithUser } from 'src/auth/types/request-with-user'
@@ -19,6 +20,7 @@ import {
 import { CreateWorkspaceDto } from 'src/workspaces/dto/create-workspace.dto'
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
 import { RolesGuard } from 'src/guards/rolesGuard'
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -118,5 +120,38 @@ export class WorkspacesController {
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   findOne(@Req() req: RequestWithUser, @Param('id') id: string) {
     return this.workspacesService.findAvailableById(req.user.id, id)
+  }
+
+  @Patch(':id')
+  @UseGuards(RolesGuard)
+  @ApiOperation({summary: 'Update workspace'})
+  @ApiResponse({
+    status: 200,
+    schema: {
+      example: {
+        id: "6f4108ba-460b-4a96-819e-2c14a8736928",
+        name: "TG-RP/KITABI",
+      }
+    }
+  })
+  @ApiResponse({
+    status:404,
+    description: 'Workspace not found '
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Dear user, you can not udpate this workspace',
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  update(
+  @Req() req: RequestWithUser,
+  @Param('id') id:string, 
+  @Body()updatedWorkspaceDto: UpdateWorkspaceDto)
+  {
+    return this.workspacesService.update(req.user.id,id,updatedWorkspaceDto)
   }
 }
