@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException } from '@nestjs/common'
+import { Injectable, ForbiddenException, BadRequestException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Workspace } from './entities/workspace.entity'
@@ -6,6 +6,7 @@ import { UserWorkspace } from './entities/user-workspace.entity'
 import { User } from '../users/entities/user.entity'
 import { UserRole } from '../util/role.enum'
 import { verifyIfNameNotTaken } from 'src/util/helpers'
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
 
 @Injectable()
 export class WorkspacesService {
@@ -69,5 +70,23 @@ export class WorkspacesService {
       )
     }
     return userWorkspace.workspace
+  }
+
+  async update(workspaceId:string, updateWorkspaceDto: UpdateWorkspaceDto){
+    const workspace = await this.workspaceRepository.findOne({
+      where: {
+        id: workspaceId
+      }
+    })
+
+    if(!workspace) {
+      throw new BadRequestException('Workspace not found')
+    }
+    
+    await this.workspaceRepository.update({id: workspaceId},{name: updateWorkspaceDto.name})
+    return await this.workspaceRepository.findOne({
+      where: {
+        id:workspaceId
+    }})
   }
 }
