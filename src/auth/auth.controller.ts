@@ -1,17 +1,11 @@
-import {
-  Controller,
-  Post,
-  Body,
-  HttpCode,
-  UseGuards,
-  Request,
-} from '@nestjs/common'
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
 import { LoginUserDto } from './dto/login-user.dto'
-import { LocalAuthGuard } from './local-auth.guard'
 import { CreateUserDto } from 'src/users/dto/create-user.dto'
-
+import { ForgotPasswordDto } from './dto/forgot-password-dto'
+import { ResetPasswordDto } from './dto/reset-passoword-dto'
+import { UserRole } from '../util/role.enum'
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
@@ -30,7 +24,7 @@ export class AuthController {
           id: 3,
           fullName: 'Jackson Eric',
           email: 'jackson@gmail.com',
-          roles: 'Admin',
+          roles: UserRole.ADMIN,
         },
         access_token:
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImphY2tzb25AZ21haWwuY29tIiwicm9sZSI6IkFkbWluIiwiaWQiOjMsImlhdCI6MTc0MTE4MTcyMSwiZXhwIjoxNzQxMTg1MzIxfQ.28Kz5VQUkLkD-P5LLPUUID0YahXYnHJS30HkwfQZXEA',
@@ -47,25 +41,61 @@ export class AuthController {
 
   @Post('signup')
   @HttpCode(201)
-  @ApiOperation({summary: 'Create new User'})
-  @ApiResponse({ 
-     status: 201,
-     schema: {
+  @ApiOperation({ summary: 'Create new User' })
+  @ApiResponse({
+    status: 201,
+    schema: {
       example: {
         message: 'User registered successfully',
         user: {
           id: 5,
           fullName: 'Christelle Gihozo',
           email: 'christelle@gmail.com',
-          roles: 'Admin',
+          roles: UserRole.ADMIN,
         },
       },
     },
-   })
-  @ApiResponse({ status: 400, description: 'Bad Request. Missing or invalid inputs.' })
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Missing or invalid inputs.',
+  })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   signup(@Body() createUserDto: CreateUserDto) {
-    return this.authService.signup(createUserDto);
+    return this.authService.signup(createUserDto)
   }
- 
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: 200,
+    description: 'Reset email sent successfully',
+    schema: {
+      example: {
+        message: 'You will receive an email to reset your password',
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request. Invalid email' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto)
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset successful',
+    schema: {
+      example: {
+        message: 'Password successfully reset',
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request. Invalid Token' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto)
+  }
 }
