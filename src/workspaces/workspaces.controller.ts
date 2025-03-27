@@ -7,7 +7,7 @@ import {
   UseGuards,
   Req,
   HttpCode,
-  Put,
+  Patch,
 } from '@nestjs/common'
 import { WorkspacesService } from './workspaces.service'
 import { RequestWithUser } from 'src/auth/types/request-with-user'
@@ -122,7 +122,7 @@ export class WorkspacesController {
     return this.workspacesService.findAvailableById(req.user.id, id)
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiOperation({summary: 'Update workspace'})
   @ApiResponse({
     status: 200,
@@ -140,6 +140,10 @@ export class WorkspacesController {
   @ApiResponse({
     status: 401,
     description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Dear user, you can not udpate this workspace',
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   update(@Param('id') id:string, @Body()updatedWorkspaceDto: UpdateWorkspaceDto){
