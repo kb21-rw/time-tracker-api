@@ -123,6 +123,7 @@ export class WorkspacesController {
   }
 
   @Patch(':id')
+  @UseGuards(RolesGuard)
   @ApiOperation({summary: 'Update workspace'})
   @ApiResponse({
     status: 200,
@@ -146,7 +147,11 @@ export class WorkspacesController {
     description: 'Dear user, you can not udpate this workspace',
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  update(@Param('id') id:string, @Body()updatedWorkspaceDto: UpdateWorkspaceDto){
-    return this.workspacesService.update(id,updatedWorkspaceDto)
+  update(
+  @Req() req: RequestWithUser,
+  @Param('id') id:string, 
+  @Body()updatedWorkspaceDto: UpdateWorkspaceDto)
+  {
+    return this.workspacesService.update(req.user.id,id,updatedWorkspaceDto)
   }
 }
