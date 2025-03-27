@@ -123,6 +123,25 @@ export class WorkspacesController {
   }
 
   @Put(':id')
+  @ApiOperation({summary: 'Update workspace'})
+  @ApiResponse({
+    status: 200,
+    schema: {
+      example: {
+        id: "6f4108ba-460b-4a96-819e-2c14a8736928",
+        name: "TG-RP/KITABI",
+      }
+    }
+  })
+  @ApiResponse({
+    status:404,
+    description: 'Workspace not found '
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
   update(@Param('id') id:string, @Body()updatedWorkspaceDto: UpdateWorkspaceDto){
     return this.workspacesService.update(id,updatedWorkspaceDto)
   }
