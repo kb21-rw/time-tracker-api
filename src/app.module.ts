@@ -9,6 +9,7 @@ import { EmailModule } from './email/email.module'
 import { Workspace } from './workspaces/entities/workspace.entity'
 import { UserWorkspace } from './workspaces/entities/user-workspace.entity'
 import { WorkspacesModule } from './workspaces/workspaces.module'
+import { WorkspaceInvitation } from './workspaces/entities/invitation.entity'
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { WorkspacesModule } from './workspaces/workspaces.module'
         username: process.env.DB_USERNAME,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
-        entities: [User, Workspace, UserWorkspace],
+        entities: [User, Workspace, UserWorkspace,WorkspaceInvitation],
         synchronize: true,
 
         ssl:
