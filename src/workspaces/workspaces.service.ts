@@ -7,6 +7,11 @@ import { User } from '../users/entities/user.entity'
 import { UserRole } from '../util/role.enum'
 import { verifyIfNameNotTaken } from 'src/util/helpers'
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
+import { InviteUserDto } from './dto/invite-user.dto'
+import { WorkspaceInvitation } from './entities/invitation.entity'
+import { JwtService } from '@nestjs/jwt'
+import { ConfigService } from '@nestjs/config'
+import { EmailService } from 'src/email/email.service'
 
 @Injectable()
 export class WorkspacesService {
@@ -15,6 +20,11 @@ export class WorkspacesService {
     private workspaceRepository: Repository<Workspace>,
     @InjectRepository(UserWorkspace)
     private userWorkspaceRepository: Repository<UserWorkspace>,
+    @InjectRepository(WorkspaceInvitation)
+    private invitationRepository: Repository<WorkspaceInvitation>,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private emailService: EmailService
   ) {}
 
   async create(user: User, { name }): Promise<Workspace> {
@@ -104,5 +114,40 @@ export class WorkspacesService {
       where: {
         id:workspaceId
     }})
+  }
+
+  async inviteUser(workspaceId: string, payload:InviteUserDto){
+     const workspace = await this.workspaceRepository.findOne({
+        where: {
+          id: workspaceId
+        }
+    })
+
+    if(!workspace){
+      throw new NotFoundException("Workspace not found")
+    }
+    // Only the owner of the workspace is allowed to invite user.
+
+    // Check if user already exist in database
+    
+    // Find if Invitation already exists
+    
+    const {email,fullName} = payload
+    const inviteToken = this.jwtService.sign({email,fullName}, {
+      secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
+      expiresIn: `${this.configService.get('JWT_VERIFICATION_TOKEN_EXPIRATION_TIME') || '900'}s`, // Default to 15 minutes
+    })
+
+    const invitation = this.invitationRepository.create({
+      fullName: payload.fullName,
+      email: payload.email,
+      token: inviteToken
+    })
+
+    await this.invitationRepository.save(invitation);
+
+    this.emailService.invitationEmail(workspace.name, invitation)
+
+    return { message: 'Invitation send successfully'}
   }
 }
