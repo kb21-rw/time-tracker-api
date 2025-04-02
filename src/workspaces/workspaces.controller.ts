@@ -21,6 +21,7 @@ import { CreateWorkspaceDto } from 'src/workspaces/dto/create-workspace.dto'
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
 import { RolesGuard } from 'src/guards/rolesGuard'
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
+import { InviteUserDto } from './dto/invite-user.dto'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -153,5 +154,38 @@ export class WorkspacesController {
   @Body()updatedWorkspaceDto: UpdateWorkspaceDto)
   {
     return this.workspacesService.update(req.user.id,id,updatedWorkspaceDto)
+  }
+
+  @UseGuards(RolesGuard)
+  @Post(':workspaceId/invitations')
+  @HttpCode(201)
+  @ApiOperation({ summary: 'Invite User to a workspace' })
+  @ApiResponse({
+    status: 201,
+    schema: {
+      example: {
+        message: 'User invited successfully',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Missing or invalid inputs.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: "Dear user, you can't Invite User to this workspace",
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async inviteUser(
+    @Req() req: RequestWithUser,
+    @Param('workspaceId') workspaceId: string,
+    @Body() inviteUserToWorkspace: InviteUserDto,
+  ) {
+    return this.workspacesService.inviteUser(workspaceId,inviteUserToWorkspace)
   }
 }
