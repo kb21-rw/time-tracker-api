@@ -59,7 +59,7 @@ export class EmailService {
 
   async invitationEmail(workspaceName: string,{ fullName, email, token}){
 
-    const url = `${this.configService.get('EMAIL_RESET_PASSWORD_URL')}?token=${token}`
+    const url = `${this.configService.get('EMAIL_ACCEPT_INVITATION_URL')}?token=${token}`
 
     const text = `Hi ${fullName},\n\nYou have been invited to join the workspace "${workspaceName}". To accept this invitation, click here: ${url}`
     const html = `
