@@ -15,6 +15,9 @@ export class WorkspaceInvitation {
     @Column()
     token: string
 
+    @Column()
+    workspaceId: string
+
     @CreateDateColumn()
     created_at: Date
     
