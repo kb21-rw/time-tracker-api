@@ -22,6 +22,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
 import { RolesGuard } from 'src/guards/rolesGuard'
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
 import { InviteUserDto } from './dto/invite-user.dto'
+import { AcceptInviteDto } from './dto/accept-invite.dto'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -188,4 +189,11 @@ export class WorkspacesController {
   ) {
     return this.workspacesService.inviteUser(workspaceId,inviteUserToWorkspace)
   }
+
+  @Post('invitations/accept')
+  async acceptInvitation(
+  @Body() acceptInviteDto: AcceptInviteDto
+) {
+  return this.workspacesService.acceptInvite(acceptInviteDto);
+}
 }
