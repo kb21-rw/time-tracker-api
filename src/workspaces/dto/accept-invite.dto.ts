@@ -3,6 +3,9 @@ import { IsNotEmpty, IsString } from "class-validator";
 
 export class AcceptInviteDto {
     @IsNotEmpty()
+    @ApiProperty({
+      example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+    })
     @IsString()
     token: string;
 
