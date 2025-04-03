@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common'
+import { Injectable, ForbiddenException, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Workspace } from './entities/workspace.entity'
@@ -12,6 +12,9 @@ import { WorkspaceInvitation } from './entities/invitation.entity'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { EmailService } from 'src/email/email.service'
+import { AcceptInviteDto } from './dto/accept-invite.dto'
+import { UsersService } from 'src/users/users.service'
+import { AuthService } from 'src/auth/auth.service'
 
 @Injectable()
 export class WorkspacesService {
@@ -24,7 +27,9 @@ export class WorkspacesService {
     private invitationRepository: Repository<WorkspaceInvitation>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private emailService: EmailService
+    private emailService: EmailService,
+    private userService: UsersService,
+    private authService: AuthService
   ) {}
 
   async create(user: User, { name }): Promise<Workspace> {
@@ -126,11 +131,6 @@ export class WorkspacesService {
     if(!workspace){
       throw new NotFoundException("Workspace not found")
     }
-    // Only the owner of the workspace is allowed to invite user.
-
-    // Check if user already exist in database
-    
-    // Find if Invitation already exists
     
     const {email,fullName} = payload
     const inviteToken = this.jwtService.sign({email,fullName}, {
@@ -141,7 +141,8 @@ export class WorkspacesService {
     const invitation = this.invitationRepository.create({
       fullName: payload.fullName,
       email: payload.email,
-      token: inviteToken
+      token: inviteToken,
+      workspaceId
     })
 
     await this.invitationRepository.save(invitation);
@@ -149,5 +150,68 @@ export class WorkspacesService {
     this.emailService.invitationEmail(workspace.name, invitation)
 
     return { message: 'Invitation send successfully'}
+  }
+
+  async acceptInvite(acceptInviteDto: AcceptInviteDto){
+     try{
+
+       const payload = this.jwtService.verify(acceptInviteDto.token,{
+         secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET')
+       })
+
+       const invitation = await this.invitationRepository.findOne({where: {token: acceptInviteDto.token}})
+        
+       if(!invitation){
+        throw new NotFoundException('The Invitation not found or experied')
+       }
+
+       let existingUser = await this.authService.findByEmail(invitation.email)
+       let user;
+       if(!existingUser){
+
+           if(!acceptInviteDto.password){
+            throw new BadRequestException('Password is required')
+           }
+
+           const newUser = {
+            email: invitation.email,
+            fullName: invitation.fullName,
+            password: acceptInviteDto.password
+           }
+    
+           user = await this.authService.signup(newUser,UserRole.MEMBER)
+       } else {
+        user = existingUser
+       }
+
+    // Check if user is already in the workspace
+    const existingUserWorkspace = await this.userWorkspaceRepository.findOne({
+      where: {
+        userId: String(user.id),
+        workspaceId: invitation.workspaceId
+      }
+    });
+
+    if(existingUserWorkspace){
+      throw new ConflictException('User already exist in this workspace')
+    }
+
+     const userWorkspace = this.userWorkspaceRepository.create({
+      userId: String(user.id),
+      workspaceId: invitation.workspaceId,
+      role: UserRole.MEMBER,
+    });
+
+    await this.userWorkspaceRepository.save(userWorkspace)
+
+    await this.invitationRepository.delete(invitation)
+
+    return { message: 'Invitation successful accepted'}
+     } catch(error){
+      if (error.name === 'TokenExpiredError') {
+      throw new ForbiddenException('Invitation token has expired')
+    }
+     throw error
+     }
   }
 }
