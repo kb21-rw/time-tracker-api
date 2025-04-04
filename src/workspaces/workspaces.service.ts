@@ -121,7 +121,7 @@ export class WorkspacesService {
     }})
   }
 
-  async inviteUser(workspaceId: string, payload:InviteUserDto){
+  async inviteUser(userId: string,workspaceId: string, payload:InviteUserDto){
      const workspace = await this.workspaceRepository.findOne({
         where: {
           id: workspaceId
@@ -131,7 +131,16 @@ export class WorkspacesService {
     if(!workspace){
       throw new NotFoundException("Workspace not found")
     }
+    // Check if invited email is not admin
+
+    const adminUser = await this.userService.findOne(parseInt(userId))
+
+    if( adminUser && adminUser.email === payload.email){
+      throw new BadRequestException('You cannot invite yourself to a workspace')
+    }
+
     
+
     const {email,fullName} = payload
     const inviteToken = this.jwtService.sign({email,fullName}, {
       secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),

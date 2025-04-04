@@ -187,7 +187,7 @@ export class WorkspacesController {
     @Param('workspaceId') workspaceId: string,
     @Body() inviteUserToWorkspace: InviteUserDto,
   ) {
-    return this.workspacesService.inviteUser(workspaceId,inviteUserToWorkspace)
+    return this.workspacesService.inviteUser(req.user.id,workspaceId,inviteUserToWorkspace)
   }
 
   @Post('invitations/accept')
