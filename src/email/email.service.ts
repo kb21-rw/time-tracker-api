@@ -73,7 +73,7 @@ export class EmailService {
 
     return this.sendMail({
       to: email,
-      subject: 'Reset password',
+      subject: 'workspace invitation',
       text,
       html,
     })
