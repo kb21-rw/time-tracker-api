@@ -135,7 +135,8 @@ export class WorkspacesService {
       const userWorkspace = await this.userWorkspaceRepository.findOne({
       where: {
         userId,
-        workspaceId
+        workspaceId,
+        role: UserRole.ADMIN
       }
     })
 
