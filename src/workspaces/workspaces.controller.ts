@@ -191,6 +191,15 @@ export class WorkspacesController {
   }
 
   @Post('invitations/accept')
+  @ApiResponse({ 
+      status: 200, 
+      description: 'Invitation successfully accepted',
+  })
+  @ApiOperation({ summary: 'Accept a workspace invitation' })
+  @ApiResponse({ status: 400, description: 'Bad Request. Missing or invalid inputs.' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Token expired' })
+  @ApiResponse({ status: 404, description: 'Invitation or workspace not found' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async acceptInvitation(
   @Body() acceptInviteDto: AcceptInviteDto
 ) {

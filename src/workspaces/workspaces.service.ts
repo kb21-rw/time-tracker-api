@@ -183,10 +183,6 @@ export class WorkspacesService {
        })
 
        const invitation = await this.invitationRepository.findOne({where: {token: acceptInviteDto.token}})
-        
-       if(!invitation){
-        throw new NotFoundException('The Invitation not found or experied')
-       }
 
        let existingUser = await this.authService.findByEmail(invitation.email)
        let user;
