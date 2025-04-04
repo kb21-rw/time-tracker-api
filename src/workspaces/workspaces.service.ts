@@ -112,8 +112,6 @@ export class WorkspacesService {
     }
 
 
-    
-
     await this.workspaceRepository.update({id: workspaceId},{name: updateWorkspaceDto.name})
     return await this.workspaceRepository.findOne({
       where: {
@@ -131,6 +129,21 @@ export class WorkspacesService {
     if(!workspace){
       throw new NotFoundException("Workspace not found")
     }
+
+    // Check if you are the owner of the workspace 
+
+      const userWorkspace = await this.userWorkspaceRepository.findOne({
+      where: {
+        userId,
+        workspaceId
+      }
+    })
+
+    if(!userWorkspace) {
+      throw new ForbiddenException('Dear User you are not allowed to Invite User to this workspace')
+    }
+
+
     // Check if invited email is not admin
 
     const adminUser = await this.userService.findOne(parseInt(userId))
