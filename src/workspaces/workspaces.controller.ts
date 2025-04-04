@@ -21,6 +21,8 @@ import { CreateWorkspaceDto } from 'src/workspaces/dto/create-workspace.dto'
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
 import { RolesGuard } from 'src/guards/rolesGuard'
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
+import { InviteUserDto } from './dto/invite-user.dto'
+import { AcceptInviteDto } from './dto/accept-invite.dto'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -154,4 +156,53 @@ export class WorkspacesController {
   {
     return this.workspacesService.update(req.user.id,id,updatedWorkspaceDto)
   }
+
+  @UseGuards(RolesGuard)
+  @Post(':workspaceId/invitations')
+  @HttpCode(201)
+  @ApiOperation({ summary: 'Invite User to a workspace' })
+  @ApiResponse({
+    status: 201,
+    schema: {
+      example: {
+        message: 'User invited successfully',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Missing or invalid inputs.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: "Dear user, you can't Invite User to this workspace",
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async inviteUser(
+    @Req() req: RequestWithUser,
+    @Param('workspaceId') workspaceId: string,
+    @Body() inviteUserToWorkspace: InviteUserDto,
+  ) {
+    return this.workspacesService.inviteUser(req.user.id,workspaceId,inviteUserToWorkspace)
+  }
+
+  @Post('invitations/accept')
+  @ApiResponse({ 
+      status: 200, 
+      description: 'Invitation successfully accepted',
+  })
+  @ApiOperation({ summary: 'Accept a workspace invitation' })
+  @ApiResponse({ status: 400, description: 'Bad Request. Missing or invalid inputs.' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Token expired' })
+  @ApiResponse({ status: 404, description: 'Invitation or workspace not found' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async acceptInvitation(
+  @Body() acceptInviteDto: AcceptInviteDto
+) {
+  return this.workspacesService.acceptInvite(acceptInviteDto);
+}
 }

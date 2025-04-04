@@ -69,7 +69,7 @@ export class AuthService {
     }
   }
 
-  async signup(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
+  async signup(createUserDto: CreateUserDto, role: UserRole = UserRole.ADMIN): Promise<Omit<User, 'password'>> {
     const userExist = await this.userRepository.findOne({
       where: { email: createUserDto.email },
     })
@@ -81,7 +81,7 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10)
     const newUser = this.userRepository.create({
       ...createUserDto,
-      roles: UserRole.ADMIN,
+      roles: role,
       password: hashedPassword,
     })
 
@@ -134,5 +134,9 @@ export class AuthService {
     } catch (error) {
       throw new BadRequestException('Invalid or expired token')
     }
+  }
+
+  async findByEmail(email: string): Promise<User | undefined> {
+    return this.userRepository.findOne({where: {email}})
   }
 }
