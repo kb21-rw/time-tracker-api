@@ -139,7 +139,21 @@ export class WorkspacesService {
       throw new BadRequestException('You cannot invite yourself to a workspace')
     }
 
-    
+    const existingUser = await this.userService.findByEmail(payload.email)
+
+    if(existingUser) {
+      // Check if user exist in this workspace
+      const existingMember = await this.userWorkspaceRepository.findOne({
+        where: {
+          userId: String(existingUser.id),
+          workspaceId
+        }
+      })
+
+      if(existingMember) {
+        throw new ConflictException('This user already exist in this workspace')
+      }
+    }
 
     const {email,fullName} = payload
     const inviteToken = this.jwtService.sign({email,fullName}, {
@@ -192,18 +206,6 @@ export class WorkspacesService {
        } else {
         user = existingUser
        }
-
-    // Check if user is already in the workspace
-    const existingUserWorkspace = await this.userWorkspaceRepository.findOne({
-      where: {
-        userId: String(user.id),
-        workspaceId: invitation.workspaceId
-      }
-    });
-
-    if(existingUserWorkspace){
-      throw new ConflictException('User already exist in this workspace')
-    }
 
      const userWorkspace = this.userWorkspaceRepository.create({
       userId: String(user.id),
