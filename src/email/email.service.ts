@@ -57,7 +57,7 @@ export class EmailService {
     return this.nodemailerTransport.sendMail(options)
   }
 
-  async invitationEmail(workspaceName: string,{ fullName, email, token}){
+  async sendInvitationEmail(workspaceName: string,{ fullName, email, token}){
 
     const url = `${this.configService.get('EMAIL_ACCEPT_INVITATION_URL')}?token=${token}`
 

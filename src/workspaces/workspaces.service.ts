@@ -184,7 +184,7 @@ export class WorkspacesService {
 
     await this.invitationRepository.save(invitation);
 
-    this.emailService.invitationEmail(workspace.name, invitation)
+    this.emailService.sendInvitationEmail(workspace.name, invitation)
 
     return { message: 'Invitation send successfully'}
   }
