@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt'
 import * as Mail from 'nodemailer/lib/mailer'
 import { createTransport } from 'nodemailer'
 import { InviteUserDto } from 'src/workspaces/dto/invite-user.dto'
+import { InvitationDetails } from 'src/util/types'
 
 @Injectable()
 export class EmailService {
@@ -57,11 +58,12 @@ export class EmailService {
     return this.nodemailerTransport.sendMail(options)
   }
 
-  async sendInvitationEmail(workspaceName: string,{ fullName, email, token}){
+  async sendInvitationEmail(workspaceName: string, payload:InvitationDetails){
+    const { fullName, email, token} = payload;
 
     const url = `${this.configService.get('EMAIL_ACCEPT_INVITATION_URL')}?token=${token}`
-
     const text = `Hi ${fullName},\n\nYou have been invited to join the workspace "${workspaceName}". To accept this invitation, click here: ${url}`
+
     const html = `
       <h3>Workspace Invitation</h3>
       <p>Hi ${fullName},</p>
