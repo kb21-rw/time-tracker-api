@@ -158,7 +158,7 @@ export class WorkspacesController {
   }
 
   @UseGuards(RolesGuard)
-  @Post(':workspaceId/invitations')
+  @Post(':id/invitations')
   @HttpCode(201)
   @ApiOperation({ summary: 'Invite User to a workspace' })
   @ApiResponse({
