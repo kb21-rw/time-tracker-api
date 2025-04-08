@@ -165,44 +165,31 @@ export class WorkspacesService {
        const payload = this.jwtService.verify(acceptInviteDto.token,{
          secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET')
        })
-
        const invitation = await this.invitationRepository.findOne({where: {token: acceptInviteDto.token}})
 
-       let existingUser = await this.authService.findByEmail(invitation.email)
-       let user;
-       if(!existingUser){
+      //  Create User
+       const newUser = await this.authService.signup({
+        email: invitation.email,
+        fullName: invitation.fullName,
+        password: acceptInviteDto.password,
+      }, UserRole.MEMBER);
 
-           if(!acceptInviteDto.password){
-            throw new BadRequestException('Password is required')
-           }
-
-           const newUser = {
-            email: invitation.email,
-            fullName: invitation.fullName,
-            password: acceptInviteDto.password
-           }
-    
-           user = await this.authService.signup(newUser,UserRole.MEMBER)
-       } else {
-        user = existingUser
-       }
-
+      // Add user in userworkspace table
      const userWorkspace = this.userWorkspaceRepository.create({
-      userId: String(user.id),
+      userId: String(newUser.id),
       workspaceId: invitation.workspaceId,
       role: UserRole.MEMBER,
     });
 
     await this.userWorkspaceRepository.save(userWorkspace)
 
-    await this.invitationRepository.delete(invitation)
-
     return { message: 'Invitation successful accepted'}
-     } catch(error){
+  } catch(error){
+
       if (error.name === 'TokenExpiredError') {
       throw new ForbiddenException('Invitation token has expired')
     }
-     throw error
-     }
+    throw error
   }
+}
 }

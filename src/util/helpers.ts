@@ -16,12 +16,12 @@ export function verifyIfNameNotTaken(userWorkspace?: UserWorkspace) {
   }
 }
 
-export function checkIfUserExists(existingUser:User, workspaceId:string, userWorkspaceRepository){
-   if(existingUser) {
+export function checkIfUserExists(user:User, workspaceId:string, userWorkspaceRepository){
+   if(user) {
       // Check if user exist in this workspace
       const existingMember = userWorkspaceRepository.findOne({
         where: {
-          userId: String(existingUser.id),
+          userId: String(user.id),
           workspaceId
         }
       })
@@ -29,9 +29,7 @@ export function checkIfUserExists(existingUser:User, workspaceId:string, userWor
       if(existingMember) {
         throw new ConflictException('This user already exist in this workspace')
       }
-      
     }
-
 }
 
 export function checkIfWorkspaceExists(workspace:Workspace){
