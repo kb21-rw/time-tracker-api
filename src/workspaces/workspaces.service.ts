@@ -5,7 +5,7 @@ import { Workspace } from './entities/workspace.entity'
 import { UserWorkspace } from './entities/user-workspace.entity'
 import { User } from '../users/entities/user.entity'
 import { UserRole } from '../util/role.enum'
-import { verifyIfNameNotTaken } from 'src/util/helpers'
+import { checkIfUserExists, checkIfWorkspaceExists, verifyIfNameNotTaken } from 'src/util/helpers'
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
 import { InviteUserDto } from './dto/invite-user.dto'
 import { WorkspaceInvitation } from './entities/invitation.entity'
@@ -96,9 +96,7 @@ export class WorkspacesService {
         }
     })
 
-    if(!workspace){
-      throw new NotFoundException("Workspace not found")
-    }
+    checkIfWorkspaceExists(workspace)
 
     const userWorkspace = await this.userWorkspaceRepository.findOne({
       where: {
@@ -120,56 +118,28 @@ export class WorkspacesService {
   }
 
   async inviteUser(userId: string,workspaceId: string, payload:InviteUserDto){
+    const { email, fullName } = payload
+
      const workspace = await this.workspaceRepository.findOne({
-        where: {
-          id: workspaceId
-        }
-    })
+          where: {
+            id: workspaceId
+          }
+      })
 
-    if(!workspace){
-      throw new NotFoundException("Workspace not found")
-    }
-
-    // Check if you are the owner of the workspace 
-
-      const userWorkspace = await this.userWorkspaceRepository.findOne({
-      where: {
-        userId,
-        workspaceId,
-        role: UserRole.ADMIN
-      }
-    })
-
-    if(!userWorkspace) {
-      throw new ForbiddenException('Dear User you are not allowed to Invite User to this workspace')
-    }
-
+    checkIfWorkspaceExists(workspace)
 
     // Check if invited email is not admin
-
     const adminUser = await this.userService.findOne(parseInt(userId))
 
-    if( adminUser && adminUser.email === payload.email){
+    if(adminUser.email === payload.email){
       throw new BadRequestException('You cannot invite yourself to a workspace')
     }
 
     const existingUser = await this.userService.findByEmail(payload.email)
 
-    if(existingUser) {
-      // Check if user exist in this workspace
-      const existingMember = await this.userWorkspaceRepository.findOne({
-        where: {
-          userId: String(existingUser.id),
-          workspaceId
-        }
-      })
+    checkIfUserExists(existingUser,workspaceId,this.userWorkspaceRepository)
 
-      if(existingMember) {
-        throw new ConflictException('This user already exist in this workspace')
-      }
-    }
-
-    const {email,fullName} = payload
+    
     const inviteToken = this.jwtService.sign({email,fullName}, {
       secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
       expiresIn: `${this.configService.get('JWT_VERIFICATION_TOKEN_EXPIRATION_TIME') || '900'}s`, // Default to 15 minutes

@@ -1,5 +1,7 @@
-import { ConflictException } from '@nestjs/common'
+import { ConflictException, NotFoundException } from '@nestjs/common'
+import { User } from 'src/users/entities/user.entity'
 import { UserWorkspace } from 'src/workspaces/entities/user-workspace.entity'
+import { Workspace } from 'src/workspaces/entities/workspace.entity'
 
 export function verifyIfNameNotTaken(userWorkspace?: UserWorkspace) {
   if (!userWorkspace || !userWorkspace.workspace) return
@@ -12,4 +14,29 @@ export function verifyIfNameNotTaken(userWorkspace?: UserWorkspace) {
       `A workspace with the name ${existingName} already exists`,
     )
   }
+}
+
+export function checkIfUserExists(existingUser:User, workspaceId:string, userWorkspaceRepository){
+   if(existingUser) {
+      // Check if user exist in this workspace
+      const existingMember = userWorkspaceRepository.findOne({
+        where: {
+          userId: String(existingUser.id),
+          workspaceId
+        }
+      })
+
+      if(existingMember) {
+        throw new ConflictException('This user already exist in this workspace')
+      }
+      
+    }
+
+}
+
+export function checkIfWorkspaceExists(workspace:Workspace){
+      if(!workspace){
+        console.log('workspace not found')
+        throw new NotFoundException("Workspace not found")
+      }
 }
