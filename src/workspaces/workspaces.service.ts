@@ -120,44 +120,56 @@ export class WorkspacesService {
   async inviteUser(userId: string,workspaceId: string, payload:InviteUserDto){
     const { email, fullName } = payload
 
-     const workspace = await this.workspaceRepository.findOne({
-          where: {
-            id: workspaceId
-          }
-      })
+    const workspace = await this.workspaceRepository.findOne({
+      where: { id: workspaceId }
+    });
 
-    checkIfWorkspaceExists(workspace)
+    // Validate the invite request
+    await this.validateInviteRequest(userId, workspaceId, email, workspace);
 
-    // Check if invited email is not admin
-    const adminUser = await this.userService.findOne(parseInt(userId))
-
-    if(adminUser.email === payload.email){
-      throw new BadRequestException('You cannot invite yourself to a workspace')
-    }
-
-    const existingUser = await this.userService.findByEmail(payload.email)
-
-    checkIfUserExists(existingUser,workspaceId,this.userWorkspaceRepository)
-
-    
-    const inviteToken = this.jwtService.sign({email,fullName}, {
-      secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
-      expiresIn: `${this.configService.get('JWT_VERIFICATION_TOKEN_EXPIRATION_TIME') || '900'}s`, // Default to 15 minutes
-    })
-
-    const invitation = this.invitationRepository.create({
-      fullName: payload.fullName,
-      email: payload.email,
-      token: inviteToken,
-      workspaceId
-    })
-
-    await this.invitationRepository.save(invitation);
+    // Create and save invitation 
+    const invitation = await this.createInvitation(workspaceId, email, fullName)
+ 
 
     this.emailService.sendInvitationEmail(workspace.name, invitation)
 
     return { message: 'Invitation send successfully'}
   }
+
+  private async validateInviteRequest(userId: string, workspaceId: string, email: string, workspace: Workspace) {
+  
+  checkIfWorkspaceExists(workspace);
+  
+  // Check if the inviter(admin) is not inviting themselves
+  const adminUser = await this.userService.findOne(parseInt(userId));
+  if (adminUser.email === email) {
+    throw new BadRequestException('You cannot invite yourself to a workspace');
+  }
+  
+  // Check if the invited user exists and isn't already in the workspace
+  const existingUser = await this.userService.findByEmail(email);
+  await checkIfUserExists(existingUser, workspaceId, this.userWorkspaceRepository);
+}
+
+  private async createInvitation(workspaceId: string, email: string, fullName: string) {
+  
+  const token = this.jwtService.sign(
+    { email, fullName }, 
+    {
+      secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
+      expiresIn: `${this.configService.get('JWT_VERIFICATION_TOKEN_EXPIRATION_TIME') || '900'}s`,
+    }
+  );
+
+  const invitation = this.invitationRepository.create({
+    fullName,
+    email,
+    token,
+    workspaceId
+  });
+  
+  return await this.invitationRepository.save(invitation);
+}  
 
   async acceptInvite(acceptInviteDto: AcceptInviteDto){
      try{
@@ -182,14 +194,13 @@ export class WorkspacesService {
     });
 
     await this.userWorkspaceRepository.save(userWorkspace)
-
     return { message: 'Invitation successful accepted'}
-  } catch(error){
-
+  } 
+  catch(error){
       if (error.name === 'TokenExpiredError') {
       throw new ForbiddenException('Invitation token has expired')
     }
     throw error
   }
-}
+ }
 }

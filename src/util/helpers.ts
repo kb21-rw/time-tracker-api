@@ -16,10 +16,10 @@ export function verifyIfNameNotTaken(userWorkspace?: UserWorkspace) {
   }
 }
 
-export function checkIfUserExists(user:User, workspaceId:string, userWorkspaceRepository){
+export async function checkIfUserExists(user:User, workspaceId:string, userWorkspaceRepository){
    if(user) {
       // Check if user exist in this workspace
-      const existingMember = userWorkspaceRepository.findOne({
+      const existingMember = await userWorkspaceRepository.findOne({
         where: {
           userId: String(user.id),
           workspaceId
@@ -34,7 +34,6 @@ export function checkIfUserExists(user:User, workspaceId:string, userWorkspaceRe
 
 export function checkIfWorkspaceExists(workspace:Workspace){
       if(!workspace){
-        console.log('workspace not found')
         throw new NotFoundException("Workspace not found")
       }
 }

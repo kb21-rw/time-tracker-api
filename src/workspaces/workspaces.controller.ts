@@ -158,7 +158,7 @@ export class WorkspacesController {
   }
 
   @UseGuards(RolesGuard)
-  @Post(':id/invitations')
+  @Post(':id/invitations') 
   @HttpCode(201)
   @ApiOperation({ summary: 'Invite User to a workspace' })
   @ApiResponse({
@@ -183,12 +183,12 @@ export class WorkspacesController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async inviteUser(
-    @Req() req: RequestWithUser,
-    @Param('workspaceId') workspaceId: string,
-    @Body() inviteUserToWorkspace: InviteUserDto,
-  ) {
-    return this.workspacesService.inviteUser(req.user.id,workspaceId,inviteUserToWorkspace)
-  }
+  @Req() req: RequestWithUser,
+  @Param('id') workspaceId: string,  // Match the route parameter name
+  @Body() inviteUserToWorkspace: InviteUserDto,
+) {
+  return this.workspacesService.inviteUser(req.user.id, workspaceId, inviteUserToWorkspace)
+}
 
   @Post('invitations/accept')
   @ApiResponse({ 
