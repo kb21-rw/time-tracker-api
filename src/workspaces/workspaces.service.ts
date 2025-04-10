@@ -1,4 +1,10 @@
-import { Injectable, ForbiddenException, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common'
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Workspace } from './entities/workspace.entity'
@@ -29,7 +35,7 @@ export class WorkspacesService {
     private readonly configService: ConfigService,
     private emailService: EmailService,
     private userService: UsersService,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   async create(user: User, { name }): Promise<Workspace> {
@@ -59,7 +65,7 @@ export class WorkspacesService {
     return workspace
   }
 
-  async findByUser(userId: string): Promise<Workspace[] | string> {
+  async findByUser(userId: string): Promise<Workspace[]> {
     const userWorkspaces = await this.userWorkspaceRepository.find({
       where: { userId },
       relations: ['workspace'],
@@ -67,7 +73,7 @@ export class WorkspacesService {
 
     return userWorkspaces.length > 0
       ? userWorkspaces.map(userWorkspace => userWorkspace.workspace)
-      : `You are in zero workspaces.`
+      : []
   }
 
   async findAvailableById(
@@ -87,89 +93,98 @@ export class WorkspacesService {
     return userWorkspace.workspace
   }
 
-  async update(workspaceId:string, updateWorkspaceDto: UpdateWorkspaceDto){
-
-    await this.workspaceRepository.update({id: workspaceId},{name: updateWorkspaceDto.name})
+  async update(workspaceId: string, updateWorkspaceDto: UpdateWorkspaceDto) {
+    await this.workspaceRepository.update(
+      { id: workspaceId },
+      { name: updateWorkspaceDto.name },
+    )
     return await this.workspaceRepository.findOne({
       where: {
-        id:workspaceId
-    }})
+        id: workspaceId,
+      },
+    })
   }
 
-  async inviteUser(workspaceId: string, payload:InviteUserDto){
+  async inviteUser(workspaceId: string, payload: InviteUserDto) {
     const { email, fullName } = payload
 
-    await this.validateUser(email);
+    await this.validateUser(email)
 
     const invitation = await this.createInvitation(workspaceId, email, fullName)
 
     const workspace = await this.workspaceRepository.findOne({
-      where: { id: workspaceId }
-    });
+      where: { id: workspaceId },
+    })
 
     this.emailService.sendInvitationEmail(workspace.name, invitation)
 
-    return { message: 'Invitation send successfully'}
+    return { message: 'Invitation send successfully' }
   }
 
   private async validateUser(email: string) {
-    const existingUser = await this.userService.findByEmail(email);
-    
-    if(existingUser){
-    throw new ConflictException('This user already exist in this workspace')
-  }
-}
+    const existingUser = await this.userService.findByEmail(email)
 
-  private async createInvitation(workspaceId: string, email: string, fullName: string) {
-  
-  const token = this.jwtService.sign(
-    { email, fullName }, 
-    {
-      secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
-      expiresIn: `${this.configService.get('JWT_VERIFICATION_TOKEN_EXPIRATION_TIME') || '900'}s`,
+    if (existingUser) {
+      throw new ConflictException('This user already exist in this workspace')
     }
-  );
+  }
 
-  const invitation = this.invitationRepository.create({
-    fullName,
-    email,
-    token,
-    workspaceId
-  });
-  
-  return await this.invitationRepository.save(invitation);
-}  
+  private async createInvitation(
+    workspaceId: string,
+    email: string,
+    fullName: string,
+  ) {
+    const token = this.jwtService.sign(
+      { email, fullName },
+      {
+        secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
+        expiresIn: `${this.configService.get('JWT_VERIFICATION_TOKEN_EXPIRATION_TIME') || '900'}s`,
+      },
+    )
 
-  async acceptInvite(acceptInviteDto: AcceptInviteDto){
-     try{
+    const invitation = this.invitationRepository.create({
+      fullName,
+      email,
+      token,
+      workspaceId,
+    })
 
-       const payload = this.jwtService.verify(acceptInviteDto.token,{
-         secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET')
-       })
-       const invitation = await this.invitationRepository.findOne({where: {token: acceptInviteDto.token}})
+    return await this.invitationRepository.save(invitation)
+  }
+
+  async acceptInvite(acceptInviteDto: AcceptInviteDto) {
+    try {
+      const payload = this.jwtService.verify(acceptInviteDto.token, {
+        secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
+      })
+      const invitation = await this.invitationRepository.findOne({
+        where: { token: acceptInviteDto.token },
+      })
 
       //  Create User
-       const newUser = await this.authService.signup({
-        email: invitation.email,
-        fullName: invitation.fullName,
-        password: acceptInviteDto.password,
-      }, UserRole.MEMBER);
+      const newUser = await this.authService.signup(
+        {
+          email: invitation.email,
+          fullName: invitation.fullName,
+          password: acceptInviteDto.password,
+        },
+        UserRole.MEMBER,
+      )
 
       // Add user in userworkspace table
-     const userWorkspace = this.userWorkspaceRepository.create({
-      userId: String(newUser.id),
-      workspaceId: invitation.workspaceId,
-      role: UserRole.MEMBER,
-    });
+      const userWorkspace = this.userWorkspaceRepository.create({
+        userId: String(newUser.id),
+        workspaceId: invitation.workspaceId,
+        role: UserRole.MEMBER,
+      })
 
-    await this.userWorkspaceRepository.save(userWorkspace)
-    return { message: 'Invitation successful accepted'}
-  } 
-  catch(error){
+      await this.userWorkspaceRepository.save(userWorkspace)
+      return { message: 'Invitation successful accepted' }
+    } catch (error) {
       if (error.name === 'TokenExpiredError') {
-      throw new ForbiddenException('Invitation token has expired')
+        throw new ForbiddenException('Invitation token has expired')
+      }
+      throw error
     }
-    throw error
   }
- }
 }
