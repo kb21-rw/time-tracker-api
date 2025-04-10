@@ -13,7 +13,7 @@ export class RolesGuard implements CanActivate {
     const user = request.user
 
     if (user.roles !== UserRole.ADMIN) {
-      throw new ForbiddenException(`Dear user, you can't create a workspace`)
+      throw new ForbiddenException(`Dear user,You do not have permission to perform this action`)
     }
 
     return true

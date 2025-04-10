@@ -5,9 +5,22 @@ import { WorkspacesController } from './workspaces.controller'
 import { Workspace } from './entities/workspace.entity'
 import { User } from '../users/entities/user.entity'
 import { UserWorkspace } from './entities/user-workspace.entity'
+import { EmailModule } from 'src/email/email.module'
+import { UsersModule } from 'src/users/users.module'
+import { JwtModule } from '@nestjs/jwt'
+import { ConfigModule } from '@nestjs/config'
+import { WorkspaceInvitation } from './entities/invitation.entity'
+import { AuthModule } from 'src/auth/auth.module'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Workspace, User, UserWorkspace])],
+  imports: [
+    TypeOrmModule.forFeature([Workspace, User, UserWorkspace,WorkspaceInvitation]),
+    JwtModule.register({}),
+    ConfigModule,
+    EmailModule,
+    UsersModule,
+    AuthModule
+  ],
   controllers: [WorkspacesController],
   providers: [WorkspacesService],
   exports: [WorkspacesService],

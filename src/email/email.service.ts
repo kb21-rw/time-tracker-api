@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import * as Mail from 'nodemailer/lib/mailer'
 import { createTransport } from 'nodemailer'
+import { InviteUserDto } from 'src/workspaces/dto/invite-user.dto'
+import { InvitationDetails } from 'src/util/types'
 
 @Injectable()
 export class EmailService {
@@ -54,5 +56,29 @@ export class EmailService {
   private sendMail(options: Mail.Options) {
     this.logger.log('Email sent out to', options.to)
     return this.nodemailerTransport.sendMail(options)
+  }
+
+  async sendInvitationEmail(workspaceName: string, payload:InvitationDetails){
+    const { fullName, email, token} = payload;
+
+    const url = `${this.configService.get('EMAIL_ACCEPT_INVITATION_URL')}?token=${token}`
+    const text = `Hi ${fullName},\n\nYou have been invited to join the workspace "${workspaceName}". To accept this invitation, click here: ${url}`
+
+    const html = `
+      <h3>Workspace Invitation</h3>
+      <p>Hi ${fullName},</p>
+      <p>You have been invited to join the workspace <strong>"${workspaceName}"</strong>.</p>
+      <p>To accept this invitation, click the link below:</p>
+      <p><a href="${url}">Accept invitation</a></p>
+      <p>Best regards,<br>Focus flow Team</p>
+    `;
+
+    return this.sendMail({
+      to: email,
+      subject: 'workspace invitation',
+      text,
+      html,
+    })
+
   }
 }
