@@ -93,34 +93,7 @@ export class WorkspacesService {
     return userWorkspace.workspace
   }
 
-  async update(
-    userId: string,
-    workspaceId: string,
-    updateWorkspaceDto: UpdateWorkspaceDto,
-  ) {
-    const workspace = await this.workspaceRepository.findOne({
-      where: {
-        id: workspaceId,
-      },
-    })
-
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found')
-    }
-
-    const userWorkspace = await this.userWorkspaceRepository.findOne({
-      where: {
-        userId,
-        workspaceId,
-      },
-    })
-
-    if (!userWorkspace) {
-      throw new ForbiddenException(
-        'Dear User you are not allowed to edit this workspace',
-      )
-    }
-
+  async update(workspaceId: string, updateWorkspaceDto: UpdateWorkspaceDto) {
     await this.workspaceRepository.update(
       { id: workspaceId },
       { name: updateWorkspaceDto.name },
@@ -132,82 +105,51 @@ export class WorkspacesService {
     })
   }
 
-  async inviteUser(
-    userId: string,
-    workspaceId: string,
-    payload: InviteUserDto,
-  ) {
+  async inviteUser(workspaceId: string, payload: InviteUserDto) {
+    const { email, fullName } = payload
+
+    await this.validateUser(email)
+
+    const invitation = await this.createInvitation(workspaceId, email, fullName)
+
     const workspace = await this.workspaceRepository.findOne({
-      where: {
-        id: workspaceId,
-      },
+      where: { id: workspaceId },
     })
 
-    if (!workspace) {
-      throw new NotFoundException('Workspace not found')
-    }
+    this.emailService.sendInvitationEmail(workspace.name, invitation)
 
-    // Check if you are the owner of the workspace
+    return { message: 'Invitation send successfully' }
+  }
 
-    const userWorkspace = await this.userWorkspaceRepository.findOne({
-      where: {
-        userId,
-        workspaceId,
-        role: UserRole.ADMIN,
-      },
-    })
-
-    if (!userWorkspace) {
-      throw new ForbiddenException(
-        'Dear User you are not allowed to Invite User to this workspace',
-      )
-    }
-
-    // Check if invited email is not admin
-
-    const adminUser = await this.userService.findOne(parseInt(userId))
-
-    if (adminUser && adminUser.email === payload.email) {
-      throw new BadRequestException('You cannot invite yourself to a workspace')
-    }
-
-    const existingUser = await this.userService.findByEmail(payload.email)
+  private async validateUser(email: string) {
+    const existingUser = await this.userService.findByEmail(email)
 
     if (existingUser) {
-      // Check if user exist in this workspace
-      const existingMember = await this.userWorkspaceRepository.findOne({
-        where: {
-          userId: String(existingUser.id),
-          workspaceId,
-        },
-      })
-
-      if (existingMember) {
-        throw new ConflictException('This user already exist in this workspace')
-      }
+      throw new ConflictException('This user already exist in workspace')
     }
+  }
 
-    const { email, fullName } = payload
-    const inviteToken = this.jwtService.sign(
+  private async createInvitation(
+    workspaceId: string,
+    email: string,
+    fullName: string,
+  ) {
+    const token = this.jwtService.sign(
       { email, fullName },
       {
         secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
-        expiresIn: `${this.configService.get('JWT_VERIFICATION_TOKEN_EXPIRATION_TIME') || '900'}s`, // Default to 15 minutes
+        expiresIn: `${this.configService.get('JWT_VERIFICATION_TOKEN_EXPIRATION_TIME') || '900'}s`,
       },
     )
 
     const invitation = this.invitationRepository.create({
-      fullName: payload.fullName,
-      email: payload.email,
-      token: inviteToken,
+      fullName,
+      email,
+      token,
       workspaceId,
     })
 
-    await this.invitationRepository.save(invitation)
-
-    this.emailService.invitationEmail(workspace.name, invitation)
-
-    return { message: 'Invitation send successfully' }
+    return await this.invitationRepository.save(invitation)
   }
 
   async acceptInvite(acceptInviteDto: AcceptInviteDto) {
@@ -215,39 +157,28 @@ export class WorkspacesService {
       const payload = this.jwtService.verify(acceptInviteDto.token, {
         secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
       })
-
       const invitation = await this.invitationRepository.findOne({
         where: { token: acceptInviteDto.token },
       })
 
-      let existingUser = await this.authService.findByEmail(invitation.email)
-      let user
-      if (!existingUser) {
-        if (!acceptInviteDto.password) {
-          throw new BadRequestException('Password is required')
-        }
-
-        const newUser = {
+      //  Create User
+      const newUser = await this.authService.signup(
+        {
           email: invitation.email,
           fullName: invitation.fullName,
           password: acceptInviteDto.password,
-        }
+        },
+        UserRole.MEMBER,
+      )
 
-        user = await this.authService.signup(newUser, UserRole.MEMBER)
-      } else {
-        user = existingUser
-      }
-
+      // Add user in userworkspace table
       const userWorkspace = this.userWorkspaceRepository.create({
-        userId: String(user.id),
+        userId: String(newUser.id),
         workspaceId: invitation.workspaceId,
         role: UserRole.MEMBER,
       })
 
       await this.userWorkspaceRepository.save(userWorkspace)
-
-      await this.invitationRepository.delete(invitation)
-
       return { message: 'Invitation successful accepted' }
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
