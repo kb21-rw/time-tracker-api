@@ -125,7 +125,7 @@ export class WorkspacesService {
     const existingUser = await this.userService.findByEmail(email)
 
     if (existingUser) {
-      throw new ConflictException('This user already exist in this workspace')
+      throw new ConflictException('This user already exist in workspace')
     }
   }
 
