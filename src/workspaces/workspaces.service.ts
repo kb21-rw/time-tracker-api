@@ -5,7 +5,7 @@ import { Workspace } from './entities/workspace.entity'
 import { UserWorkspace } from './entities/user-workspace.entity'
 import { User } from '../users/entities/user.entity'
 import { UserRole } from '../util/role.enum'
-import { checkIfUserExists, checkIfWorkspaceExists, verifyIfNameNotTaken } from 'src/util/helpers'
+import { verifyIfNameNotTaken } from 'src/util/helpers'
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
 import { InviteUserDto } from './dto/invite-user.dto'
 import { WorkspaceInvitation } from './entities/invitation.entity'
@@ -87,28 +87,7 @@ export class WorkspacesService {
     return userWorkspace.workspace
   }
 
-  async update(userId:string, workspaceId:string, updateWorkspaceDto: UpdateWorkspaceDto){
-
-
-    const workspace = await this.workspaceRepository.findOne({
-        where: {
-          id: workspaceId
-        }
-    })
-
-    checkIfWorkspaceExists(workspace)
-
-    const userWorkspace = await this.userWorkspaceRepository.findOne({
-      where: {
-        userId,
-        workspaceId
-      }
-    })
-
-    if(!userWorkspace) {
-      throw new ForbiddenException('Dear User you are not allowed to edit this workspace')
-    }
-
+  async update(workspaceId:string, updateWorkspaceDto: UpdateWorkspaceDto){
 
     await this.workspaceRepository.update({id: workspaceId},{name: updateWorkspaceDto.name})
     return await this.workspaceRepository.findOne({
@@ -117,38 +96,28 @@ export class WorkspacesService {
     }})
   }
 
-  async inviteUser(userId: string,workspaceId: string, payload:InviteUserDto){
+  async inviteUser(workspaceId: string, payload:InviteUserDto){
     const { email, fullName } = payload
+
+    await this.validateUser(email);
+
+    const invitation = await this.createInvitation(workspaceId, email, fullName)
 
     const workspace = await this.workspaceRepository.findOne({
       where: { id: workspaceId }
     });
-
-    // Validate the invite request
-    await this.validateInviteRequest(userId, workspaceId, email, workspace);
-
-    // Create and save invitation 
-    const invitation = await this.createInvitation(workspaceId, email, fullName)
- 
 
     this.emailService.sendInvitationEmail(workspace.name, invitation)
 
     return { message: 'Invitation send successfully'}
   }
 
-  private async validateInviteRequest(userId: string, workspaceId: string, email: string, workspace: Workspace) {
-  
-  checkIfWorkspaceExists(workspace);
-  
-  // Check if the inviter(admin) is not inviting themselves
-  const adminUser = await this.userService.findOne(parseInt(userId));
-  if (adminUser.email === email) {
-    throw new BadRequestException('You cannot invite yourself to a workspace');
+  private async validateUser(email: string) {
+    const existingUser = await this.userService.findByEmail(email);
+    
+    if(existingUser){
+    throw new ConflictException('This user already exist in this workspace')
   }
-  
-  // Check if the invited user exists and isn't already in the workspace
-  const existingUser = await this.userService.findByEmail(email);
-  await checkIfUserExists(existingUser, workspaceId, this.userWorkspaceRepository);
 }
 
   private async createInvitation(workspaceId: string, email: string, fullName: string) {

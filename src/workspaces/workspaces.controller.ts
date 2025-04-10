@@ -23,6 +23,7 @@ import { RolesGuard } from 'src/guards/rolesGuard'
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
 import { InviteUserDto } from './dto/invite-user.dto'
 import { AcceptInviteDto } from './dto/accept-invite.dto'
+import { WorkspacePermissionGuard } from 'src/guards/workspacePermission.guard'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -125,7 +126,7 @@ export class WorkspacesController {
   }
 
   @Patch(':id')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard,WorkspacePermissionGuard)
   @ApiOperation({summary: 'Update workspace'})
   @ApiResponse({
     status: 200,
@@ -150,14 +151,13 @@ export class WorkspacesController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   update(
-  @Req() req: RequestWithUser,
   @Param('id') id:string, 
   @Body()updatedWorkspaceDto: UpdateWorkspaceDto)
   {
-    return this.workspacesService.update(req.user.id,id,updatedWorkspaceDto)
+    return this.workspacesService.update(id,updatedWorkspaceDto)
   }
 
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, WorkspacePermissionGuard)
   @Post(':id/invitations') 
   @HttpCode(201)
   @ApiOperation({ summary: 'Invite User to a workspace' })
@@ -183,11 +183,10 @@ export class WorkspacesController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async inviteUser(
-  @Req() req: RequestWithUser,
-  @Param('id') workspaceId: string,  // Match the route parameter name
+  @Param('id') id: string,  
   @Body() inviteUserToWorkspace: InviteUserDto,
 ) {
-  return this.workspacesService.inviteUser(req.user.id, workspaceId, inviteUserToWorkspace)
+  return this.workspacesService.inviteUser(id, inviteUserToWorkspace)
 }
 
   @Post('invitations/accept')
