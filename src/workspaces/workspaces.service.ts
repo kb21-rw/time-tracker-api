@@ -65,7 +65,7 @@ export class WorkspacesService {
     return workspace
   }
 
-  async findByUser(userId: string): Promise<Workspace[] | string> {
+  async findByUser(userId: string): Promise<Workspace[]> {
     const userWorkspaces = await this.userWorkspaceRepository.find({
       where: { userId },
       relations: ['workspace'],
