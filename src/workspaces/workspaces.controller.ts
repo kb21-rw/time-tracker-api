@@ -204,4 +204,18 @@ export class WorkspacesController {
 ) {
   return this.workspacesService.acceptInvite(acceptInviteDto);
 }
+
+@UseGuards(RolesGuard, WorkspacePermissionGuard)
+@Get(':id/users')
+@ApiOperation({description: 'Get all users in workspace'})
+@ApiResponse({ status: 200, description: 'List of users in the workspace' })
+@ApiResponse({ status: 400, description: 'Bad Request. Missing or invalid inputs.' })
+@ApiResponse({ status: 403, description: 'Forbidden - No access to workspace or token expired' })
+@ApiResponse({ status: 404, description: 'Workspace not found' })
+@ApiResponse({ status: 500, description: 'Internal Server Error' })
+async getWorkspaceUsers(
+  @Param('id') id: string,
+){
+  return this.workspacesService.getWorkspaceUsers(id)
+}
 }
