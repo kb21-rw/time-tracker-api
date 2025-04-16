@@ -191,7 +191,8 @@ export class WorkspacesService {
   async getWorkspaceUsers(workspaceId:string){
     const workspaceUsers = await this.userWorkspaceRepository.find({
       where: {
-        workspaceId
+        workspaceId,
+        role: UserRole.MEMBER
       },
       relations: ['user']
     })
