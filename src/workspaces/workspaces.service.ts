@@ -188,7 +188,7 @@ export class WorkspacesService {
     }
   }
 
-  async getWorkspaceUsers(workspaceId:string){
+  async getWorkspaceUsers(workspaceId:string):Promise<User[]>{
     const workspaceUsers = await this.userWorkspaceRepository.find({
       where: {
         workspaceId,
