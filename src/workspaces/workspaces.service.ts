@@ -197,6 +197,6 @@ export class WorkspacesService {
       relations: ['user']
     })
     
-    return workspaceUsers.map( w => w.user)
+    return workspaceUsers.map( workspaceUser => workspaceUser.user)
   }
 }
