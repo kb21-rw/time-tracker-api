@@ -187,4 +187,16 @@ export class WorkspacesService {
       throw error
     }
   }
+
+  async getWorkspaceUsers(workspaceId:string):Promise<User[]>{
+    const workspaceUsers = await this.userWorkspaceRepository.find({
+      where: {
+        workspaceId,
+        role: UserRole.MEMBER
+      },
+      relations: ['user']
+    })
+    
+    return workspaceUsers.map( workspaceUser => workspaceUser.user)
+  }
 }
