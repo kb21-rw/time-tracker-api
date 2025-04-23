@@ -9,7 +9,7 @@ import {
 import { Workspace } from '../../workspaces/entities/workspace.entity'
 
 @Entity()
-export class Grouping1 {
+export class Client {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
