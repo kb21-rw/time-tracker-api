@@ -10,8 +10,8 @@ import { Workspace } from './workspaces/entities/workspace.entity'
 import { UserWorkspace } from './workspaces/entities/user-workspace.entity'
 import { WorkspacesModule } from './workspaces/workspaces.module'
 import { WorkspaceInvitation } from './workspaces/entities/invitation.entity'
-import { Client } from './groupings/entities/client.entity'
-import { ClientsModule } from './groupings/clients.module'
+import { Client } from './clients/entities/client.entity'
+import { ClientsModule } from './clients/clients.module'
 
 @Module({
   imports: [

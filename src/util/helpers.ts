@@ -1,5 +1,5 @@
 import { ConflictException, NotFoundException } from '@nestjs/common'
-import { Client } from 'src/groupings/entities/client.entity'
+import { Client } from 'src/clients/entities/client.entity'
 import { UserWorkspace } from 'src/workspaces/entities/user-workspace.entity'
 import { Workspace } from 'src/workspaces/entities/workspace.entity'
 export function verifyIfNameNotTaken(userWorkspace?: UserWorkspace) {

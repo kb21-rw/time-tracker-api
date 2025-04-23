@@ -58,7 +58,7 @@ export class ClientsController {
     description: 'A client with the same name already exists',
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async createGrouping(
+  async create(
     @Param('workspaceId') workspaceId: string,
     @Body() dto: CreateClientDto,
   ) {
