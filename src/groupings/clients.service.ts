@@ -1,29 +1,29 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { Grouping1 } from '../entities/grouping1.entity'
+import { Client } from './entities/client.entity'
 import { Workspace } from 'src/workspaces/entities/workspace.entity'
-import { CreateGrouping1Dto } from '../dto/create-grouping1.dto'
+import { CreateClientDto } from './dto/create-client.dto'
 import { VerifyIfEntityExists } from 'src/util/helpers'
 
 @Injectable()
-export class Grouping1Service {
+export class ClientsService {
   constructor(
-    @InjectRepository(Grouping1)
-    private readonly grouping1Repo: Repository<Grouping1>,
+    @InjectRepository(Client)
+    private readonly clientsRepo: Repository<Client>,
     @InjectRepository(Workspace)
     private readonly workspaceRepo: Repository<Workspace>,
   ) {}
 
   async create(
     workspaceId: string,
-    { name }: CreateGrouping1Dto,
-  ): Promise<Grouping1> {
+    { name }: CreateClientDto,
+  ): Promise<Client> {
     const workspace = await this.workspaceRepo.findOne({
       where: { id: workspaceId },
     })
 
-    const existingGrouping1 = await this.grouping1Repo.findOne({
+    const existingClients = await this.clientsRepo.findOne({
       where: {
         name,
         workspace: { id: workspaceId },
@@ -31,14 +31,14 @@ export class Grouping1Service {
       relations: ['workspace'],
     })
 
-    VerifyIfEntityExists(workspace, existingGrouping1)
+    VerifyIfEntityExists(workspace, existingClients)
 
-    const Newgrouping1 = this.grouping1Repo.create({
+    const newClient = this.clientsRepo.create({
       name,
       workspace,
     })
 
-    await this.grouping1Repo.save(Newgrouping1)
-    return Newgrouping1
+    await this.clientsRepo.save(newClient)
+    return newClient
   }
 }
