@@ -8,6 +8,7 @@ export function verifyIfNameNotTaken(userWorkspace?: UserWorkspace) {
   const {
     workspace: { name: existingName },
   } = userWorkspace
+
   if (existingName) {
     throw new ConflictException(
       `A workspace with the name ${existingName} already exists`,
@@ -18,6 +19,7 @@ export function VerifyIfEntityExists(workspace?: Workspace, client?: Client) {
   if (!workspace) {
     throw new NotFoundException('Workspace not found')
   }
+
   if (client) {
     throw new ConflictException(
       `Client with the name ${client.name} already exists`,
