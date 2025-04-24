@@ -10,20 +10,20 @@ import { VerifyIfEntityExists } from 'src/util/helpers'
 export class ClientsService {
   constructor(
     @InjectRepository(Client)
-    private readonly clientsRepo: Repository<Client>,
+    private readonly clientsRepository: Repository<Client>,
     @InjectRepository(Workspace)
-    private readonly workspaceRepo: Repository<Workspace>,
+    private readonly workspaceRepository: Repository<Workspace>,
   ) {}
 
   async create(
     workspaceId: string,
     { name }: CreateClientDto,
   ): Promise<Client> {
-    const workspace = await this.workspaceRepo.findOne({
+    const workspace = await this.workspaceRepository.findOne({
       where: { id: workspaceId },
     })
 
-    const existingClients = await this.clientsRepo.findOne({
+    const existingClients = await this.clientsRepository.findOne({
       where: {
         name,
         workspace: { id: workspaceId },
@@ -33,12 +33,12 @@ export class ClientsService {
 
     VerifyIfEntityExists(workspace, existingClients)
 
-    const newClient = this.clientsRepo.create({
+    const newClient = this.clientsRepository.create({
       name,
       workspace,
     })
 
-    await this.clientsRepo.save(newClient)
+    await this.clientsRepository.save(newClient)
     return newClient
   }
 }
