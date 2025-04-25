@@ -13,28 +13,28 @@ import {
   ApiTags,
 } from '@nestjs/swagger'
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
-import { Grouping1Service } from './grouping1.service'
+import { ClientsService } from './clients.service'
 import { WorkspacePermissionGuard } from 'src/guards/workspacePermission.guard'
 import { RolesGuard } from 'src/guards/rolesGuard'
-import { CreateGrouping1Dto } from '../dto/create-grouping1.dto'
+import { CreateClientDto } from './dto/create-client.dto'
 
-@ApiTags('Grouping1')
+@ApiTags('clients')
 @ApiBearerAuth()
-@Controller('workspaces/:workspaceId/grouping1')
+@Controller('workspaces/:workspaceId/clients')
 @UseGuards(JwtAuthGuard)
-export class Grouping1Controller {
-  constructor(private readonly grouping1Service: Grouping1Service) {}
+export class ClientsController {
+  constructor(private readonly clientsService: ClientsService) {}
 
   @UseGuards(RolesGuard, WorkspacePermissionGuard)
   @Post()
   @HttpCode(201)
-  @ApiOperation({ summary: 'Create a new grouping 1' })
+  @ApiOperation({ summary: 'Create a new client' })
   @ApiResponse({
     status: 201,
     schema: {
       example: {
-        message: 'New grouping 1 created successfully',
-        grouping1: {
+        message: 'New client created successfully',
+        client: {
           id: 'fjfkafkfa...',
           name: 'The Gym',
         },
@@ -47,7 +47,7 @@ export class Grouping1Controller {
   })
   @ApiResponse({
     status: 403,
-    description: "Dear user, you can't create a new grouping 1",
+    description: "Dear user, you can't create a new client",
   })
   @ApiResponse({
     status: 404,
@@ -55,13 +55,13 @@ export class Grouping1Controller {
   })
   @ApiResponse({
     status: 409,
-    description: 'A grouping 1 with the same name already exists',
+    description: 'A client with the same name already exists',
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async createGrouping(
+  async create(
     @Param('workspaceId') workspaceId: string,
-    @Body() dto: CreateGrouping1Dto,
+    @Body() dto: CreateClientDto,
   ) {
-    return this.grouping1Service.create(workspaceId, dto)
+    return this.clientsService.create(workspaceId, dto)
   }
 }
