@@ -58,7 +58,7 @@ export class ClientsService {
         userId: userId,
       },
     })
-    VerifyIfEntityExists({ userWorkspace })
+    VerifyIfEntityExists({ workspace, userWorkspace })
 
     const clients = await this.clientsRepository.find({
       where: { workspace: { id: workspaceId } },
