@@ -65,6 +65,6 @@ export class ClientsService {
       relations: ['workspace'],
     })
 
-    return clients || []
+    return clients
   }
 }
