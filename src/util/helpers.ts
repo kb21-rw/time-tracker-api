@@ -18,7 +18,7 @@ export function verifyIfNameNotTaken(userWorkspace?: UserWorkspace) {
     )
   }
 }
-export function VerifyIfEntityExists({
+export function ensureValidClientContext({
   workspace,
   existingClient,
   userWorkspace,
