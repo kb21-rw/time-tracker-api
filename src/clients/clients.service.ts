@@ -4,7 +4,8 @@ import { Repository } from 'typeorm'
 import { Client } from './entities/client.entity'
 import { Workspace } from 'src/workspaces/entities/workspace.entity'
 import { CreateClientDto } from './dto/create-client.dto'
-import { VerifyIfEntityExists } from 'src/util/helpers'
+import { ensureValidClientContext } from 'src/util/helpers'
+import { UserWorkspace } from 'src/workspaces/entities/user-workspace.entity'
 
 @Injectable()
 export class ClientsService {
@@ -13,6 +14,8 @@ export class ClientsService {
     private readonly clientsRepository: Repository<Client>,
     @InjectRepository(Workspace)
     private readonly workspaceRepository: Repository<Workspace>,
+    @InjectRepository(UserWorkspace)
+    private readonly userWorkspaceRepository: Repository<UserWorkspace>,
   ) {}
 
   async create(
@@ -23,7 +26,7 @@ export class ClientsService {
       where: { id: workspaceId },
     })
 
-    const existingClients = await this.clientsRepository.findOne({
+    const existingClient = await this.clientsRepository.findOne({
       where: {
         name,
         workspace: { id: workspaceId },
@@ -31,7 +34,7 @@ export class ClientsService {
       relations: ['workspace'],
     })
 
-    VerifyIfEntityExists(workspace, existingClients)
+    ensureValidClientContext({ workspace, existingClient })
 
     const newClient = this.clientsRepository.create({
       name,
@@ -40,5 +43,28 @@ export class ClientsService {
 
     await this.clientsRepository.save(newClient)
     return newClient
+  }
+  async findByWorkspaceId(
+    workspaceId: string,
+    userId: string,
+  ): Promise<Client[]> {
+    const workspace = await this.workspaceRepository.findOne({
+      where: { id: workspaceId },
+    })
+
+    const userWorkspace = await this.userWorkspaceRepository.findOne({
+      where: {
+        workspaceId: workspaceId,
+        userId: userId,
+      },
+    })
+    ensureValidClientContext({ workspace, userWorkspace })
+
+    const clients = await this.clientsRepository.find({
+      where: { workspace: { id: workspaceId } },
+      relations: ['workspace'],
+    })
+
+    return clients
   }
 }
