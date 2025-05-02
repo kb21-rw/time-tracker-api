@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -22,6 +23,7 @@ import { CreateClientDto } from './dto/create-client.dto'
 import { WorkspaceRoles } from '../decorators/workspace-roles.decorator'
 import { UserRole } from 'src/util/role.enum'
 import { RequestWithUser } from 'src/auth/types/request-with-user'
+import { updateClientDto } from './dto/update-client.dto'
 
 @ApiTags('Clients')
 @ApiBearerAuth()
@@ -106,4 +108,38 @@ export class ClientsController {
   ) {
     return this.clientsService.findByWorkspaceId(workspaceId, req.user.id)
   }
+
+  @WorkspaceRoles(UserRole.ADMIN)
+  @Patch(':clientId')
+  @ApiOperation({ summary: 'Update client' })
+  @ApiResponse({
+    status: 200,
+    schema: {
+      example: {
+        id: 'fjfkafkfa...',
+        name: 'The Gym',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Client not found ',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Not authorized to update this client',
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  update(
+    @Param('workspaceId') workspaceId: string,
+    @Param('clientId') clientId: string,
+    @Body() updateClientDto: updateClientDto,
+    @Req() req: RequestWithUser,
+  ) {
+      return this.clientsService.update(workspaceId, req.user.id, clientId, updateClientDto)
+    }
 }
