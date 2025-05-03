@@ -3,7 +3,7 @@ import { Project } from './entities/project.entity'
 import { In, Repository } from 'typeorm'
 import { Client } from 'src/clients/entities/client.entity'
 import {
-  checkExistingProject,
+  checkIfProjectExists,
   ensureClientBelongsToWorkspace,
   validateClient,
   validateUserWorkspace,
@@ -59,7 +59,7 @@ export class ProjectsService {
       relations: ['client'],
     })
 
-    checkExistingProject(existingProject)
+    checkIfProjectExists(existingProject)
 
     const newProject = this.projectRepository.create({
       name,
