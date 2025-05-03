@@ -4,7 +4,11 @@ import { Repository } from 'typeorm'
 import { Client } from './entities/client.entity'
 import { Workspace } from 'src/workspaces/entities/workspace.entity'
 import { CreateClientDto } from './dto/create-client.dto'
-import { ensureValidClientContext } from 'src/util/helpers'
+import {
+  checkIfClientExists,
+  validateUserWorkspace,
+  validateWorkspace,
+} from 'src/util/helpers'
 import { UserWorkspace } from 'src/workspaces/entities/user-workspace.entity'
 
 @Injectable()
@@ -26,6 +30,8 @@ export class ClientsService {
       where: { id: workspaceId },
     })
 
+    validateWorkspace(workspace)
+
     const existingClient = await this.clientsRepository.findOne({
       where: {
         name,
@@ -34,7 +40,7 @@ export class ClientsService {
       relations: ['workspace'],
     })
 
-    ensureValidClientContext({ workspace, existingClient })
+    checkIfClientExists(existingClient)
 
     const newClient = this.clientsRepository.create({
       name,
@@ -52,13 +58,16 @@ export class ClientsService {
       where: { id: workspaceId },
     })
 
+    validateWorkspace(workspace)
+
     const userWorkspace = await this.userWorkspaceRepository.findOne({
       where: {
         workspaceId: workspaceId,
         userId: userId,
       },
     })
-    ensureValidClientContext({ workspace, userWorkspace })
+
+    validateUserWorkspace(userWorkspace)
 
     const clients = await this.clientsRepository.find({
       where: { workspace: { id: workspaceId } },
