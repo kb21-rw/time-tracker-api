@@ -11,8 +11,3 @@ export interface InvitationDetails {
   created_at: Date
   updated_at: Date
 }
-export interface ClientValidationData {
-  workspace: Workspace
-  existingClient?: Client
-  userWorkspace?: UserWorkspace
-}
