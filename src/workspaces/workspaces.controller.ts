@@ -30,7 +30,7 @@ import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 @ApiTags('Workspaces')
 @ApiBearerAuth()
 @Controller('workspaces')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
   @UseGuards(RolesGuard)
@@ -74,6 +74,7 @@ export class WorkspacesController {
     return this.workspacesService.create(req.user, createWorkspaceDto)
   }
 
+  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
   @Get()
   @ApiOperation({ summary: 'Get all workspaces of the authenticated user' })
   @ApiResponse({
@@ -102,7 +103,8 @@ export class WorkspacesController {
     return this.workspacesService.findByUser(req.user.id)
   }
 
-  @Get(':id')
+  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
+  @Get(':workspaceId')
   @ApiOperation({ summary: 'Get a single workspace by ID' })
   @ApiResponse({
     status: 200,
@@ -127,7 +129,8 @@ export class WorkspacesController {
     return this.workspacesService.findAvailableById(req.user.id, id)
   }
 
-  @Patch(':id')
+  @WorkspaceRoles(UserRole.ADMIN)
+  @Patch(':workspaceId')
   @UseGuards(WorkspacePermissionGuard)
   @WorkspaceRoles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Update workspace' })
@@ -160,9 +163,8 @@ export class WorkspacesController {
     return this.workspacesService.update(id, updatedWorkspaceDto)
   }
 
-  @UseGuards(WorkspacePermissionGuard)
   @WorkspaceRoles(UserRole.ADMIN)
-  @Post(':id/invitations')
+  @Post(':workspaceId/invitations')
   @HttpCode(201)
   @ApiOperation({ summary: 'Invite User to a workspace' })
   @ApiResponse({
@@ -213,9 +215,8 @@ export class WorkspacesController {
     return this.workspacesService.acceptInvite(acceptInviteDto)
   }
 
-  @UseGuards(WorkspacePermissionGuard)
   @WorkspaceRoles(UserRole.ADMIN)
-  @Get(':id/users')
+  @Get(':workspaceId/users')
   @ApiOperation({ description: 'Get all users in the workspace' })
   @ApiResponse({ status: 200, description: 'List of users in the workspace' })
   @ApiResponse({
