@@ -43,23 +43,8 @@ export function checkIfProjectExists(existingProject: Project | null) {
   }
 }
 
-export function validateUserWorkspace(userWorkspace: UserWorkspace | null) {
-  if (userWorkspace === null) {
-    throw new ForbiddenException('You do not belong to this workspace')
-  }
-}
-
 export function validateClient(client: Client | null) {
   if (client === null) {
     throw new NotFoundException('Client not found')
-  }
-}
-
-export function ensureClientBelongsToWorkspace(
-  client: Client,
-  workspaceId: string,
-) {
-  if (client.workspace.id !== workspaceId) {
-    throw new ForbiddenException('Client does not belong to this workspace')
   }
 }
