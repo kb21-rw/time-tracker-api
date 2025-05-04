@@ -11,7 +11,6 @@ import {
   HttpCode,
   Param,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common'
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
@@ -19,12 +18,16 @@ import { WorkspacePermissionGuard } from 'src/guards/workspacePermission.guard'
 import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 import { UserRole } from 'src/util/role.enum'
 import { CreateProjectDto } from './dto/create-project.dto'
-import { RequestWithUser } from 'src/auth/types/request-with-user'
+import { ClientBelongsToWorkspaceGuard } from 'src/guards/client-belongs-to-workspace.guard'
 
 @ApiTags('Projects')
-@UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
+@UseGuards(
+  JwtAuthGuard,
+  WorkspacePermissionGuard,
+  ClientBelongsToWorkspaceGuard,
+)
 @ApiBearerAuth()
-@Controller('workspaces/:workspaceId/projects')
+@Controller('workspaces/:workspaceId/clients/:clientId/projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
@@ -63,10 +66,9 @@ export class ProjectsController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async create(
-    @Req() req: RequestWithUser,
     @Param('workspaceId') workspaceId: string,
     @Body() dto: CreateProjectDto,
   ) {
-    return this.projectsService.create(dto, workspaceId, req.user.id)
+    return this.projectsService.create(dto, workspaceId)
   }
 }
