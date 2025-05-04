@@ -4,12 +4,7 @@ import { Repository } from 'typeorm'
 import { Client } from './entities/client.entity'
 import { Workspace } from 'src/workspaces/entities/workspace.entity'
 import { CreateClientDto } from './dto/create-client.dto'
-import {
-  checkIfClientExists,
-  validateUserWorkspace,
-  validateWorkspace,
-} from 'src/util/helpers'
-import { UserWorkspace } from 'src/workspaces/entities/user-workspace.entity'
+import { checkIfClientExists, validateWorkspace } from 'src/util/helpers'
 
 @Injectable()
 export class ClientsService {
@@ -18,8 +13,6 @@ export class ClientsService {
     private readonly clientsRepository: Repository<Client>,
     @InjectRepository(Workspace)
     private readonly workspaceRepository: Repository<Workspace>,
-    @InjectRepository(UserWorkspace)
-    private readonly userWorkspaceRepository: Repository<UserWorkspace>,
   ) {}
 
   async create(
@@ -44,7 +37,7 @@ export class ClientsService {
 
     const newClient = this.clientsRepository.create({
       name,
-      workspace,
+      workspace: { id: workspaceId },
     })
 
     await this.clientsRepository.save(newClient)
@@ -59,15 +52,6 @@ export class ClientsService {
     })
 
     validateWorkspace(workspace)
-
-    const userWorkspace = await this.userWorkspaceRepository.findOne({
-      where: {
-        workspaceId: workspaceId,
-        userId: userId,
-      },
-    })
-
-    validateUserWorkspace(userWorkspace)
 
     const clients = await this.clientsRepository.find({
       where: { workspace: { id: workspaceId } },
