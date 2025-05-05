@@ -66,9 +66,9 @@ export class ProjectsController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async create(
-    @Param('workspaceId') workspaceId: string,
+    @Param('workspaceId') _workspaceId: string,
     @Body() dto: CreateProjectDto,
   ) {
-    return this.projectsService.create(dto, workspaceId)
+    return this.projectsService.create(dto)
   }
 }

@@ -1,41 +1,15 @@
 import { InjectRepository } from '@nestjs/typeorm'
 import { Project } from './entities/project.entity'
-import { In, Repository } from 'typeorm'
-import { Client } from 'src/clients/entities/client.entity'
-import {
-  checkIfProjectExists,
-  validateClient,
-  validateWorkspace,
-} from 'src/util/helpers'
+import { Repository } from 'typeorm'
+import { checkIfProjectExists } from 'src/util/helpers'
 import { CreateProjectDto } from './dto/create-project.dto'
-import { Workspace } from 'src/workspaces/entities/workspace.entity'
 
 export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
-    @InjectRepository(Workspace)
-    private readonly workspaceRepository: Repository<Workspace>,
-    @InjectRepository(Client)
-    private readonly clientRepository: Repository<Client>,
   ) {}
-  async create(
-    { name, clientId }: CreateProjectDto,
-    workspaceId: string,
-  ): Promise<Project> {
-    const workspace = await this.workspaceRepository.findOne({
-      where: { id: workspaceId },
-    })
-
-    validateWorkspace(workspace)
-
-    const client = await this.clientRepository.findOne({
-      where: { id: clientId },
-      relations: ['workspace'],
-    })
-
-    validateClient(client)
-
+  async create({ name, clientId }: CreateProjectDto): Promise<Project> {
     const existingProject = await this.projectRepository.findOne({
       where: {
         name,

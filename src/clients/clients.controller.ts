@@ -100,10 +100,7 @@ export class ClientsController {
     description: 'Workspace not found.',
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async findAll(
-    @Req() req: RequestWithUser,
-    @Param('workspaceId') workspaceId: string,
-  ) {
-    return this.clientsService.findByWorkspaceId(workspaceId, req.user.id)
+  async findAll(@Param('workspaceId') workspaceId: string) {
+    return this.clientsService.findByWorkspaceId(workspaceId)
   }
 }
