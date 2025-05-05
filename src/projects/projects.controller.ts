@@ -18,13 +18,13 @@ import { WorkspacePermissionGuard } from 'src/guards/workspacePermission.guard'
 import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 import { UserRole } from 'src/util/role.enum'
 import { CreateProjectDto } from './dto/create-project.dto'
-import { ClientBelongsToWorkspaceGuard } from 'src/guards/client-belongs-to-workspace.guard'
+import { ClientWorkspacePermissionGuard } from 'src/guards/client-workspace-permission.guard'
 
 @ApiTags('Projects')
 @UseGuards(
   JwtAuthGuard,
   WorkspacePermissionGuard,
-  ClientBelongsToWorkspaceGuard,
+  ClientWorkspacePermissionGuard,
 )
 @ApiBearerAuth()
 @Controller('workspaces/:workspaceId/clients/:clientId/projects')

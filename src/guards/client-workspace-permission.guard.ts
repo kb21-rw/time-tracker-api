@@ -9,7 +9,7 @@ import { Client } from 'src/clients/entities/client.entity'
 import { Repository } from 'typeorm'
 
 @Injectable()
-export class ClientBelongsToWorkspaceGuard implements CanActivate {
+export class ClientWorkspacePermissionGuard implements CanActivate {
   constructor(
     @InjectRepository(Client)
     private readonly clientRepository: Repository<Client>,
