@@ -1,11 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Client } from './entities/client.entity'
-import { CreateClientDto } from './dto/create-client.dto'
+import { ClientDto } from './dto/client.dto'
 import { checkIfClientExists } from 'src/util/helpers'
-import { UserWorkspace } from 'src/workspaces/entities/user-workspace.entity'
-import { updateClientDto } from './dto/update-client.dto'
 
 @Injectable()
 export class ClientsService {
@@ -14,10 +12,7 @@ export class ClientsService {
     private readonly clientsRepository: Repository<Client>,
   ) {}
 
-  async create(
-    workspaceId: string,
-    { name }: CreateClientDto,
-  ): Promise<Client> {
+  async create(workspaceId: string, { name }: ClientDto): Promise<Client> {
     const existingClient = await this.clientsRepository.findOne({
       where: {
         name,
@@ -45,24 +40,23 @@ export class ClientsService {
     return clients
   }
 
-  async update(clientId: string, { name }: updateClientDto){
+  async update(clientId: string, { name }: ClientDto) {
+    const existingClient = await this.clientsRepository.findOne({
+      where: {
+        name,
+      },
+    })
 
-      const existingClient = await this.clientsRepository.findOne({
-        where: {
-          name,
-        },
-      });
+    checkIfClientExists(existingClient)
 
-      checkIfClientExists(existingClient)
-      
-     const client = await this.clientsRepository.findOne({
-        where: { id: clientId },
-        relations: ['workspace'],
-      });
+    const client = await this.clientsRepository.findOne({
+      where: { id: clientId },
+      relations: ['workspace'],
+    })
 
-      client.name = name;
-      await this.clientsRepository.save(client)
+    client.name = name
+    await this.clientsRepository.save(client)
 
-      return client;
+    return client
   }
 }
