@@ -8,11 +8,4 @@ export class CreateProjectDto {
   })
   @IsNotEmpty()
   name: string
-
-  @ApiProperty({
-    example: 'ClientId',
-    required: true,
-  })
-  @IsNotEmpty()
-  clientId: string
 }

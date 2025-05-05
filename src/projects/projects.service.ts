@@ -9,7 +9,7 @@ export class ProjectsService {
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
   ) {}
-  async create({ name, clientId }: CreateProjectDto): Promise<Project> {
+  async create({ name }: CreateProjectDto, clientId: string): Promise<Project> {
     const existingProject = await this.projectRepository.findOne({
       where: {
         name,

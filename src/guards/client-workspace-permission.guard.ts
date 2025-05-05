@@ -17,8 +17,7 @@ export class ClientWorkspacePermissionGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest()
-    const { workspaceId } = request.params
-    const { clientId } = request.body
+    const { workspaceId, clientId } = request.params
 
     const client = await this.clientRepository.findOne({
       where: { id: clientId },
