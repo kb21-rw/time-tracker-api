@@ -29,7 +29,7 @@ export class WorkspacePermissionGuard implements CanActivate {
     }
     const request = context.switchToHttp().getRequest()
     const userId = request.user.id
-    const workspaceId = request.params.id
+    const workspaceId = request.params.workspaceId
 
     const userWorkspace = await this.userWorkspaceRepository.findOne({
       where: {

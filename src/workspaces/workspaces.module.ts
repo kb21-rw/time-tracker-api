@@ -14,15 +14,20 @@ import { AuthModule } from 'src/auth/auth.module'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Workspace, User, UserWorkspace,WorkspaceInvitation]),
+    TypeOrmModule.forFeature([
+      Workspace,
+      User,
+      UserWorkspace,
+      WorkspaceInvitation,
+    ]),
     JwtModule.register({}),
     ConfigModule,
     EmailModule,
     UsersModule,
-    AuthModule
+    AuthModule,
   ],
   controllers: [WorkspacesController],
   providers: [WorkspacesService],
-  exports: [WorkspacesService],
+  exports: [WorkspacesService, TypeOrmModule],
 })
 export class WorkspacesModule {}
