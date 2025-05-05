@@ -12,6 +12,8 @@ import { WorkspacesModule } from './workspaces/workspaces.module'
 import { WorkspaceInvitation } from './workspaces/entities/invitation.entity'
 import { Client } from './clients/entities/client.entity'
 import { ClientsModule } from './clients/clients.module'
+import { Project } from './projects/entities/project.entity'
+import { ProjectsModule } from './projects/projects.module'
 
 @Module({
   imports: [
@@ -27,7 +29,14 @@ import { ClientsModule } from './clients/clients.module'
         username: process.env.DB_USERNAME,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
-        entities: [User, Workspace, UserWorkspace, WorkspaceInvitation, Client],
+        entities: [
+          User,
+          Workspace,
+          UserWorkspace,
+          WorkspaceInvitation,
+          Client,
+          Project,
+        ],
         synchronize: true,
 
         ssl:
@@ -40,6 +49,7 @@ import { ClientsModule } from './clients/clients.module'
     UsersModule,
     EmailModule,
     ClientsModule,
+    ProjectsModule,
   ],
 })
 export class AppModule {}

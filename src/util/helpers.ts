@@ -1,10 +1,7 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common'
+import { ConflictException } from '@nestjs/common'
 import { UserWorkspace } from 'src/workspaces/entities/user-workspace.entity'
-import { ClientValidationData } from './types'
+import { Client } from 'src/clients/entities/client.entity'
+import { Project } from 'src/projects/entities/project.entity'
 export function verifyIfNameNotTaken(userWorkspace?: UserWorkspace) {
   if (!userWorkspace || !userWorkspace.workspace) return
 
@@ -18,22 +15,19 @@ export function verifyIfNameNotTaken(userWorkspace?: UserWorkspace) {
     )
   }
 }
-export function ensureValidClientContext({
-  workspace,
-  existingClient,
-  userWorkspace,
-}: ClientValidationData) {
-  if (workspace === null) {
-    throw new NotFoundException('Workspace not found')
-  }
 
+export function checkIfClientExists(existingClient: Client | null) {
   if (existingClient) {
     throw new ConflictException(
       `Client with the name ${existingClient.name} already exists`,
     )
   }
+}
 
-  if (userWorkspace === null) {
-    throw new ForbiddenException('You do not belong to this workspace')
+export function checkIfProjectExists(existingProject: Project | null) {
+  if (existingProject) {
+    throw new ConflictException(
+      `Project with the name ${existingProject.name} already exists`,
+    )
   }
 }
