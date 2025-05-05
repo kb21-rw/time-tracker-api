@@ -69,7 +69,7 @@ export class ClientsService {
     return clients
   }
 
-  async update(workspaceId: string, userId:string, clientId: string, updateClientDto: updateClientDto){
+  async update(workspaceId: string, userId:string, clientId: string, { name }: updateClientDto){
     const workspace = await this.workspaceRepository.findOne({
       where: {
           id: workspaceId
@@ -85,7 +85,7 @@ export class ClientsService {
       
       const existingClient = await this.clientsRepository.findOne({
         where: {
-          name: updateClientDto.name,
+          name,
         },
       });
 
@@ -96,7 +96,7 @@ export class ClientsService {
         relations: ['workspace'],
       });
 
-      client.name = updateClientDto.name
+      client.name = name;
       await this.clientsRepository.save(client)
 
       return client;
