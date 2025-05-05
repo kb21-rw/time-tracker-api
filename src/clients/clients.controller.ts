@@ -133,6 +133,10 @@ export class ClientsController {
     status: 403,
     description: 'Not authorized to update this client',
   })
+  @ApiResponse({
+    status: 409,
+    description: 'A client with the same name already exists',
+  })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   update(
     @Param('workspaceId') workspaceId: string,
@@ -140,6 +144,11 @@ export class ClientsController {
     @Body() updateClientDto: updateClientDto,
     @Req() req: RequestWithUser,
   ) {
-      return this.clientsService.update(workspaceId, req.user.id, clientId, updateClientDto)
-    }
+    return this.clientsService.update(
+      workspaceId,
+      req.user.id,
+      clientId,
+      updateClientDto,
+    )
+  }
 }
