@@ -45,7 +45,7 @@ export class ClientsService {
     return clients
   }
 
-  async update(workspaceId: string, userId:string, clientId: string, { name }: updateClientDto){
+  async update(clientId: string, { name }: updateClientDto){
 
       const existingClient = await this.clientsRepository.findOne({
         where: {
