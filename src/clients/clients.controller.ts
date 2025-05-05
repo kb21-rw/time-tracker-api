@@ -24,6 +24,7 @@ import { WorkspaceRoles } from '../decorators/workspace-roles.decorator'
 import { UserRole } from 'src/util/role.enum'
 import { RequestWithUser } from 'src/auth/types/request-with-user'
 import { updateClientDto } from './dto/update-client.dto'
+import { ClientWorkspacePermissionGuard } from 'src/guards/client-workspace-permission.guard'
 
 @ApiTags('Clients')
 @ApiBearerAuth()
@@ -107,6 +108,7 @@ export class ClientsController {
   }
 
   @WorkspaceRoles(UserRole.ADMIN)
+  @UseGuards(ClientWorkspacePermissionGuard)
   @Patch(':clientId')
   @ApiOperation({ summary: 'Update client' })
   @ApiResponse({
@@ -136,14 +138,11 @@ export class ClientsController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   update(
-    @Param('workspaceId') workspaceId: string,
+    @Param('workspaceId') _workspaceId: string,
     @Param('clientId') clientId: string,
     @Body() updateClientDto: updateClientDto,
-    @Req() req: RequestWithUser,
   ) {
     return this.clientsService.update(
-      workspaceId,
-      req.user.id,
       clientId,
       updateClientDto,
     )
