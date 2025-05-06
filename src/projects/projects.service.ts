@@ -15,7 +15,6 @@ export class ProjectsService {
         name,
         client: { id: clientId },
       },
-      relations: ['client'],
     })
 
     checkIfProjectExists(existingProject)
@@ -27,5 +26,12 @@ export class ProjectsService {
 
     await this.projectRepository.save(newProject)
     return newProject
+  }
+  async findByWorkspaceId(workspaceId: string): Promise<Project[]> {
+    const projects = await this.projectRepository.find({
+      where: { client: { workspace: { id: workspaceId } } },
+    })
+
+    return projects
   }
 }
