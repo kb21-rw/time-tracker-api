@@ -22,18 +22,15 @@ import { CreateProjectDto } from './dto/create-project.dto'
 import { ClientWorkspacePermissionGuard } from 'src/guards/client-workspace-permission.guard'
 
 @ApiTags('Projects')
-@UseGuards(
-  JwtAuthGuard,
-  WorkspacePermissionGuard,
-  ClientWorkspacePermissionGuard,
-)
+@UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
 @ApiBearerAuth()
-@Controller('workspaces/:workspaceId/clients/:clientId/projects')
+@Controller('workspaces/:workspaceId')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
+  @UseGuards(ClientWorkspacePermissionGuard)
   @WorkspaceRoles(UserRole.ADMIN)
-  @Post()
+  @Post('clients/:clientId/projects')
   @HttpCode(201)
   @ApiOperation({ summary: 'Create a new project' })
   @ApiResponse({
@@ -71,7 +68,7 @@ export class ProjectsController {
   }
 
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
-  @Get()
+  @Get('projects')
   @HttpCode(200)
   @ApiOperation({ summary: 'Get all projects of the authenticated user' })
   @ApiResponse({
@@ -96,10 +93,7 @@ export class ProjectsController {
     description: "Dear user, you can't access these projects",
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async findAll(
-    @Param('workspaceId') workspaceId: string,
-    @Param('clientId') _clientId: string,
-  ) {
+  async findAll(@Param('workspaceId') workspaceId: string) {
     return this.projectsService.findByWorkspaceId(workspaceId)
   }
 }
