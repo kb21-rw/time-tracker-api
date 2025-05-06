@@ -57,10 +57,6 @@ export class ProjectsController {
     description: "Dear user, you can't create a new project",
   })
   @ApiResponse({
-    status: 404,
-    description: 'Workspace or client not found.',
-  })
-  @ApiResponse({
     status: 409,
     description: 'A project with the same name already exists',
   })
