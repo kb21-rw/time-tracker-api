@@ -8,6 +8,7 @@ import { ProjectsService } from './projects.service'
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Param,
   Post,
@@ -71,5 +72,38 @@ export class ProjectsController {
     @Body() dto: CreateProjectDto,
   ) {
     return this.projectsService.create(dto, clientId)
+  }
+
+  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
+  @Get()
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Get all projects of the authenticated user' })
+  @ApiResponse({
+    status: 200,
+    schema: {
+      example: {
+        projects: [
+          {
+            id: 'fjfkafkfa...',
+            name: 'Project Alpha',
+          },
+        ],
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: "Dear user, you can't access these projects",
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async findAll(
+    @Param('workspaceId') workspaceId: string,
+    @Param('clientId') _clientId: string,
+  ) {
+    return this.projectsService.findByWorkspaceId(workspaceId)
   }
 }
