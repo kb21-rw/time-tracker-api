@@ -30,9 +30,10 @@ import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 @ApiTags('Workspaces')
 @ApiBearerAuth()
 @Controller('workspaces')
-@UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
+@UseGuards(JwtAuthGuard) // Only using JwtAuthGuard at controller level
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
+
   @UseGuards(RolesGuard)
   @Post()
   @HttpCode(201)
@@ -74,6 +75,8 @@ export class WorkspacesController {
     return this.workspacesService.create(req.user, createWorkspaceDto)
   }
 
+  // Add WorkspacePermissionGuard to specific methods that need it
+  @UseGuards(WorkspacePermissionGuard)
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
   @Get()
   @ApiOperation({ summary: 'Get all workspaces of the authenticated user' })
@@ -103,6 +106,7 @@ export class WorkspacesController {
     return this.workspacesService.findByUser(req.user.id)
   }
 
+  @UseGuards(WorkspacePermissionGuard)
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
   @Get(':workspaceId')
   @ApiOperation({ summary: 'Get a single workspace by ID' })
@@ -129,10 +133,9 @@ export class WorkspacesController {
     return this.workspacesService.findAvailableById(req.user.id, id)
   }
 
-  @WorkspaceRoles(UserRole.ADMIN)
-  @Patch(':workspaceId')
   @UseGuards(WorkspacePermissionGuard)
   @WorkspaceRoles(UserRole.ADMIN)
+  @Patch(':workspaceId')
   @ApiOperation({ summary: 'Update workspace' })
   @ApiResponse({
     status: 200,
@@ -163,6 +166,7 @@ export class WorkspacesController {
     return this.workspacesService.update(id, updatedWorkspaceDto)
   }
 
+  @UseGuards(WorkspacePermissionGuard)
   @WorkspaceRoles(UserRole.ADMIN)
   @Post(':workspaceId/invitations')
   @HttpCode(201)
@@ -195,6 +199,7 @@ export class WorkspacesController {
     return this.workspacesService.inviteUser(id, inviteUserToWorkspace)
   }
 
+  // This endpoint doesn't need WorkspacePermissionGuard as it's accepting an invitation
   @Post('invitations/accept')
   @ApiResponse({
     status: 200,
@@ -215,6 +220,7 @@ export class WorkspacesController {
     return this.workspacesService.acceptInvite(acceptInviteDto)
   }
 
+  @UseGuards(WorkspacePermissionGuard)
   @WorkspaceRoles(UserRole.ADMIN)
   @Get(':workspaceId/users')
   @ApiOperation({ description: 'Get all users in the workspace' })
