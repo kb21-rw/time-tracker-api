@@ -30,7 +30,7 @@ import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 @ApiTags('Workspaces')
 @ApiBearerAuth()
 @Controller('workspaces')
-@UseGuards(JwtAuthGuard) // Only using JwtAuthGuard at controller level
+@UseGuards(JwtAuthGuard)
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
@@ -193,13 +193,12 @@ export class WorkspacesController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async inviteUser(
-    @Param('id') id: string,
+    @Param('workspaceId') workspaceId: string,
     @Body() inviteUserToWorkspace: InviteUserDto,
   ) {
-    return this.workspacesService.inviteUser(id, inviteUserToWorkspace)
+    return this.workspacesService.inviteUser(workspaceId, inviteUserToWorkspace)
   }
 
-  // This endpoint doesn't need WorkspacePermissionGuard as it's accepting an invitation
   @Post('invitations/accept')
   @ApiResponse({
     status: 200,
@@ -234,7 +233,7 @@ export class WorkspacesController {
     description: 'Forbidden - No access to workspace or token expired',
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async getWorkspaceUsers(@Param('id') id: string) {
-    return this.workspacesService.getWorkspaceUsers(id)
+  async getWorkspaceUsers(@Param('workspaceId') workspaceId: string) {
+    return this.workspacesService.getWorkspaceUsers(workspaceId)
   }
 }
