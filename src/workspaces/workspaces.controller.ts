@@ -75,7 +75,7 @@ export class WorkspacesController {
     return this.workspacesService.create(req.user, createWorkspaceDto)
   }
 
-  // Add WorkspacePermissionGuard to specific methods that need it
+
   @UseGuards(WorkspacePermissionGuard)
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
   @Get()
@@ -160,10 +160,10 @@ export class WorkspacesController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   update(
-    @Param('id') id: string,
+    @Param('workspaceId') workspaceId: string,
     @Body() updatedWorkspaceDto: UpdateWorkspaceDto,
   ) {
-    return this.workspacesService.update(id, updatedWorkspaceDto)
+    return this.workspacesService.update(workspaceId, updatedWorkspaceDto)
   }
 
   @UseGuards(WorkspacePermissionGuard)

@@ -94,15 +94,16 @@ export class WorkspacesService {
   }
 
   async update(workspaceId: string, updateWorkspaceDto: UpdateWorkspaceDto) {
-    await this.workspaceRepository.update(
-      { id: workspaceId },
-      { name: updateWorkspaceDto.name },
-    )
-    return await this.workspaceRepository.findOne({
+   const workspace= await this.workspaceRepository.findOne({
       where: {
         id: workspaceId,
       },
     })
+
+    workspace.name = updateWorkspaceDto.name
+    await this.workspaceRepository.save(workspace)
+    
+    return workspace
   }
 
   async inviteUser(workspaceId: string, payload: InviteUserDto) {
