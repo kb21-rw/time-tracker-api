@@ -129,8 +129,11 @@ export class WorkspacesController {
     description: "Dear user, you don't belong in this workspace",
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  findOne(@Req() req: RequestWithUser, @Param('id') id: string) {
-    return this.workspacesService.findAvailableById(req.user.id, id)
+  findOne(
+    @Req() req: RequestWithUser,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    return this.workspacesService.findAvailableById(req.user.id, workspaceId)
   }
 
   @UseGuards(WorkspacePermissionGuard)
@@ -160,10 +163,10 @@ export class WorkspacesController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   update(
-    @Param('id') id: string,
+    @Param('workspaceId') workspaceId: string,
     @Body() updatedWorkspaceDto: UpdateWorkspaceDto,
   ) {
-    return this.workspacesService.update(id, updatedWorkspaceDto)
+    return this.workspacesService.update(workspaceId, updatedWorkspaceDto)
   }
 
   @UseGuards(WorkspacePermissionGuard)
