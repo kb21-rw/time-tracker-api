@@ -14,7 +14,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
-import { WorkspacePermissionGuard } from 'src/guards/workspacePermission.guard'
+import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
 import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 import { UserRole } from 'src/util/role.enum'
 import { CreateProjectDto } from './dto/create-project.dto'

@@ -16,7 +16,7 @@ import {
 } from '@nestjs/swagger'
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
 import { ClientsService } from './clients.service'
-import { WorkspacePermissionGuard } from 'src/guards/workspacePermission.guard'
+import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
 import { ClientDto } from './dto/client.dto'
 import { WorkspaceRoles } from '../decorators/workspace-roles.decorator'
 import { UserRole } from 'src/util/role.enum'
