@@ -9,7 +9,6 @@ import { Workspace } from './entities/workspace.entity'
 import { UserWorkspace } from './entities/user-workspace.entity'
 import { User } from '../users/entities/user.entity'
 import { UserRole } from '../util/role.enum'
-import { verifyIfNameNotTaken } from 'src/util/helpers'
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
 import { InviteUserDto } from './dto/invite-user.dto'
 import { WorkspaceInvitation } from './entities/invitation.entity'
@@ -36,15 +35,29 @@ export class WorkspacesService {
     private authService: AuthService,
   ) {}
 
-  async create(user: User, { name }): Promise<Workspace> {
-    const existingWorkspaces = await this.userWorkspaceRepository.find({
-      where: { userId: String(user.id) },
-      relations: ['workspace'],
-    })
-    const existingWorkspace = existingWorkspaces.find(
-      existingWorkspace => existingWorkspace.workspace.name === name,
+  async findByName(
+    userId: string,
+    name: string,
+  ): Promise<UserWorkspace | null> {
+    return this.userWorkspaceRepository
+      .createQueryBuilder('user-workspace')
+      .innerJoinAndSelect('user-workspace.workspace', 'workspace')
+      .where('user-workspace.userId = :userId', { userId })
+      .andWhere('LOWER(workspace.name) = LOWER(:name)', { name: name.trim() })
+      .getOne()
+  }
+
+  private async checkIfExists(userId: string, name: string) {
+    const existingUserWorkspace = await this.findByName(userId, name)
+    console.log('existingWorkspace', existingUserWorkspace)
+    if (!existingUserWorkspace) return
+    throw new ConflictException(
+      `Workspace with the name ${existingUserWorkspace.workspace.name} already exists`,
     )
-    verifyIfNameNotTaken(existingWorkspace)
+  }
+  async create(user: User, { name }): Promise<Workspace> {
+    await this.checkIfExists(String(user.id), name)
+
     const workspace = this.workspaceRepository.create({
       name,
     })
@@ -91,7 +104,13 @@ export class WorkspacesService {
     return userWorkspace.workspace
   }
 
-  async update(workspaceId: string, updateWorkspaceDto: UpdateWorkspaceDto) {
+  async update(
+    workspaceId: string,
+    updateWorkspaceDto: UpdateWorkspaceDto,
+    userId: string,
+  ) {
+    await this.checkIfExists(userId, updateWorkspaceDto.name)
+
     await this.workspaceRepository.update(
       { id: workspaceId },
       { name: updateWorkspaceDto.name },

@@ -164,9 +164,14 @@ export class WorkspacesController {
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   update(
     @Param('workspaceId') workspaceId: string,
+    @Req() req: RequestWithUser,
     @Body() updatedWorkspaceDto: UpdateWorkspaceDto,
   ) {
-    return this.workspacesService.update(workspaceId, updatedWorkspaceDto)
+    return this.workspacesService.update(
+      workspaceId,
+      updatedWorkspaceDto,
+      req.user.id,
+    )
   }
 
   @UseGuards(WorkspacePermissionGuard)
