@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Client } from './entities/client.entity'
 import { ClientDto } from './dto/client.dto'
-import { checkIfClientExists } from 'src/util/helpers'
 
 @Injectable()
 export class ClientsService {
@@ -48,17 +47,11 @@ export class ClientsService {
     return clients
   }
 
-  async update(clientId: string, { name }: ClientDto) {
-    const existingClient = await this.clientsRepository.findOne({
-      where: {
-        name,
-      },
-    })
-
-    checkIfClientExists(existingClient)
+  async update(clientId: string, { name }: ClientDto, workspaceId: string) {
+    await this.checkIfExists(workspaceId, name)
 
     const client = await this.clientsRepository.findOne({
-      where: { id: clientId },
+      where: { id: clientId, workspace: { id: workspaceId } },
       relations: ['workspace'],
     })
 

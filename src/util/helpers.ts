@@ -16,14 +16,6 @@ export function verifyIfNameNotTaken(userWorkspace?: UserWorkspace) {
   }
 }
 
-export function checkIfClientExists(existingClient: Client | null) {
-  if (existingClient) {
-    throw new ConflictException(
-      `Client with the name ${existingClient.name} already exists`,
-    )
-  }
-}
-
 export function checkIfProjectExists(existingProject: Project | null) {
   if (existingProject) {
     throw new ConflictException(

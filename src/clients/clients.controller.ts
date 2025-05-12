@@ -126,10 +126,10 @@ export class ClientsController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   update(
-    @Param('workspaceId') _workspaceId: string,
+    @Param('workspaceId') workspaceId: string,
     @Param('clientId') clientId: string,
     @Body() updateClientDto: ClientDto,
   ) {
-    return this.clientsService.update(clientId, updateClientDto)
+    return this.clientsService.update(clientId, updateClientDto, workspaceId)
   }
 }
