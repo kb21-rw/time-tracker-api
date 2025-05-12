@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { ConflictException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Client } from './entities/client.entity'
@@ -12,16 +12,24 @@ export class ClientsService {
     private readonly clientsRepository: Repository<Client>,
   ) {}
 
-  async create(workspaceId: string, { name }: ClientDto): Promise<Client> {
-    const existingClient = await this.clientsRepository.findOne({
-      where: {
-        name,
-        workspace: { id: workspaceId },
-      },
-      relations: ['workspace'],
-    })
+  async findByName(workspaceId: string, name: string): Promise<Client | null> {
+    return this.clientsRepository
+      .createQueryBuilder('client')
+      .where('LOWER(client.name) = LOWER(:name)', { name: name.trim() })
+      .andWhere('client.workspace.id = :workspaceId', { workspaceId })
+      .getOne()
+  }
 
-    checkIfClientExists(existingClient)
+  private async checkIfExists(workspaceId: string, name: string) {
+    const existingClient = await this.findByName(workspaceId, name)
+    if (!existingClient) return true
+
+    throw new ConflictException(
+      `Client with the name ${existingClient.name} already exists`,
+    )
+  }
+  async create(workspaceId: string, { name }: ClientDto): Promise<Client> {
+    await this.checkIfExists(workspaceId, name)
 
     const newClient = this.clientsRepository.create({
       name,
