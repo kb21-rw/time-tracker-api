@@ -1,8 +1,6 @@
 import {
   Injectable,
   ForbiddenException,
-  NotFoundException,
-  BadRequestException,
   ConflictException,
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -188,15 +186,15 @@ export class WorkspacesService {
     }
   }
 
-  async getWorkspaceUsers(workspaceId:string):Promise<User[]>{
+  async getWorkspaceUsers(workspaceId: string): Promise<User[]> {
     const workspaceUsers = await this.userWorkspaceRepository.find({
       where: {
         workspaceId,
-        role: UserRole.MEMBER
+        role: UserRole.MEMBER,
       },
-      relations: ['user']
+      relations: ['user'],
     })
-    
-    return workspaceUsers.map( workspaceUser => workspaceUser.user)
+
+    return workspaceUsers.map(workspaceUser => workspaceUser.user)
   }
 }
