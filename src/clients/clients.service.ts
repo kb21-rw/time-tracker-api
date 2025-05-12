@@ -18,7 +18,6 @@ export class ClientsService {
         name,
         workspace: { id: workspaceId },
       },
-      relations: ['workspace'],
     })
 
     checkIfClientExists(existingClient)
@@ -34,7 +33,6 @@ export class ClientsService {
   async findByWorkspaceId(workspaceId: string): Promise<Client[]> {
     const clients = await this.clientsRepository.find({
       where: { workspace: { id: workspaceId } },
-      relations: ['workspace'],
     })
 
     return clients

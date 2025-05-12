@@ -3,8 +3,11 @@ import { Project } from './entities/project.entity'
 import { Repository } from 'typeorm'
 import { checkIfProjectExists } from 'src/util/helpers'
 import { CreateProjectDto } from './dto/create-project.dto'
+import { Logger } from '@nestjs/common'
 
 export class ProjectsService {
+  private readonly logger = new Logger(ProjectsService.name)
+
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
@@ -27,5 +30,16 @@ export class ProjectsService {
 
     await this.projectRepository.save(newProject)
     return newProject
+  }
+
+  async findByWorkspaceId(workspaceId: string): Promise<Project[]> {
+    this.logger.log(`Fetching projects for workspace: ${workspaceId}`)
+
+    const projects = await this.projectRepository.find({
+      where: { client: { workspace: { id: workspaceId } } },
+      relations: ['client'],
+    })
+
+    return projects
   }
 }
