@@ -59,14 +59,14 @@ export class EmailService {
   }
 
   async sendInvitationEmail(workspaceName: string, payload:InvitationDetails){
-    const { fullName, email, token} = payload;
+    const {email, token} = payload;
 
     const url = `${this.configService.get('EMAIL_ACCEPT_INVITATION_URL')}?token=${token}`
-    const text = `Hi ${fullName},\n\nYou have been invited to join the workspace "${workspaceName}". To accept this invitation, click here: ${url}`
+    const text = `Hi,\n\nYou have been invited to join the workspace "${workspaceName}". To accept this invitation, click here: ${url}`
 
     const html = `
       <h3>Workspace Invitation</h3>
-      <p>Hi ${fullName},</p>
+      <p>Hi,</p>
       <p>You have been invited to join the workspace <strong>"${workspaceName}"</strong>.</p>
       <p>To accept this invitation, click the link below:</p>
       <p><a href="${url}">Accept invitation</a></p>
