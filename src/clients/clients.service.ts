@@ -27,6 +27,7 @@ export class ClientsService {
       `Client with the name ${existingClient.name} already exists`,
     )
   }
+
   async create(workspaceId: string, { name }: ClientDto): Promise<Client> {
     await this.checkIfExists(workspaceId, name)
 
