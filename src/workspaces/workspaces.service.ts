@@ -94,16 +94,15 @@ export class WorkspacesService {
   }
 
   async update(workspaceId: string, updateWorkspaceDto: UpdateWorkspaceDto) {
-   const workspace= await this.workspaceRepository.findOne({
+    await this.workspaceRepository.update(
+      { id: workspaceId },
+      { name: updateWorkspaceDto.name },
+    )
+    return await this.workspaceRepository.findOne({
       where: {
         id: workspaceId,
       },
     })
-
-    workspace.name = updateWorkspaceDto.name
-    await this.workspaceRepository.save(workspace)
-    
-    return workspace
   }
 
   async inviteUser(workspaceId: string, payload: InviteUserDto) {
@@ -130,10 +129,7 @@ export class WorkspacesService {
     }
   }
 
-  private async createInvitation(
-    workspaceId: string,
-    email: string,
-  ) {
+  private async createInvitation(workspaceId: string, email: string) {
     const token = this.jwtService.sign(
       { email },
       {
@@ -187,15 +183,15 @@ export class WorkspacesService {
     }
   }
 
-  async getWorkspaceUsers(workspaceId:string):Promise<User[]>{
+  async getWorkspaceUsers(workspaceId: string): Promise<User[]> {
     const workspaceUsers = await this.userWorkspaceRepository.find({
       where: {
         workspaceId,
-        role: UserRole.MEMBER
+        role: UserRole.MEMBER,
       },
-      relations: ['user']
+      relations: ['user'],
     })
-    
-    return workspaceUsers.map( workspaceUser => workspaceUser.user)
+
+    return workspaceUsers.map(workspaceUser => workspaceUser.user)
   }
 }
