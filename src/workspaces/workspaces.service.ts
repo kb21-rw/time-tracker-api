@@ -107,11 +107,11 @@ export class WorkspacesService {
   }
 
   async inviteUser(workspaceId: string, payload: InviteUserDto) {
-    const { email, fullName } = payload
+    const { email } = payload
 
     await this.validateUser(email)
 
-    const invitation = await this.createInvitation(workspaceId, email, fullName)
+    const invitation = await this.createInvitation(workspaceId, email)
 
     const workspace = await this.workspaceRepository.findOne({
       where: { id: workspaceId },
@@ -133,10 +133,9 @@ export class WorkspacesService {
   private async createInvitation(
     workspaceId: string,
     email: string,
-    fullName: string,
   ) {
     const token = this.jwtService.sign(
-      { email, fullName },
+      { email },
       {
         secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
         expiresIn: `${this.configService.get('JWT_VERIFICATION_TOKEN_EXPIRATION_TIME') || '900'}s`,
@@ -144,7 +143,6 @@ export class WorkspacesService {
     )
 
     const invitation = this.invitationRepository.create({
-      fullName,
       email,
       token,
       workspaceId,
@@ -166,7 +164,7 @@ export class WorkspacesService {
       const newUser = await this.authService.signup(
         {
           email: invitation.email,
-          fullName: invitation.fullName,
+          fullName: acceptInviteDto.fullName,
           password: acceptInviteDto.password,
         },
         UserRole.MEMBER,
