@@ -108,4 +108,17 @@ export class ProjectsService {
 
     return projects
   }
+
+  async update(
+    projectId: string,
+    { name, clientId: newClientId }: UpdateProjectDto,
+    currentClientId: string,
+    workspaceId: string,
+  ): Promise<Project> {
+    if (currentClientId === newClientId) {
+      return this.updateWithinSameClient(projectId, name, currentClientId)
+    } else {
+      return this.transferToNewClient(projectId, name, newClientId, workspaceId)
+    }
+  }
 }
