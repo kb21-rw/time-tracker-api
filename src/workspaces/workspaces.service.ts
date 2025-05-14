@@ -105,7 +105,7 @@ export class WorkspacesService {
     })
   }
 
-  async inviteUser(workspaceId: string, payload: InviteUserDto) {
+  async inviteUser(userId, workspaceId: string, payload: InviteUserDto) {
     const { email } = payload
 
     await this.validateUser(email)
@@ -116,7 +116,9 @@ export class WorkspacesService {
       where: { id: workspaceId },
     })
 
-    this.emailService.sendInvitationEmail(workspace.name, invitation)
+    const inviter = await this.userService.findOne(userId)
+
+    this.emailService.sendInvitationEmail(workspace.name, invitation, inviter.fullName)
 
     return { message: 'Invitation send successfully' }
   }
