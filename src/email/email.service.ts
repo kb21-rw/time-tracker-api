@@ -58,20 +58,20 @@ export class EmailService {
     return this.nodemailerTransport.sendMail(options)
   }
 
-  async sendInvitationEmail(workspaceName: string, payload:InvitationDetails){
-    const { fullName, email, token} = payload;
+  async sendInvitationEmail(workspaceName: string, payload:InvitationDetails, inviterName: string) {
+    const {email, token} = payload;
 
     const url = `${this.configService.get('EMAIL_ACCEPT_INVITATION_URL')}?token=${token}`
-    const text = `Hi ${fullName},\n\nYou have been invited to join the workspace "${workspaceName}". To accept this invitation, click here: ${url}`
+    const text = `Hi,\n\n ${inviterName}has invited you to join the workspace "${workspaceName}". To accept this invitation, click here: ${url}`
 
     const html = `
       <h3>Workspace Invitation</h3>
-      <p>Hi ${fullName},</p>
-      <p>You have been invited to join the workspace <strong>"${workspaceName}"</strong>.</p>
+      <p>Hi,</p>
+      <p>${inviterName} has invited you to join the workspace <strong>"${workspaceName}"</strong>.</p>
       <p>To accept this invitation, click the link below:</p>
       <p><a href="${url}">Accept invitation</a></p>
       <p>Best regards,<br>Focus flow Team</p>
-    `;
+    `
 
     return this.sendMail({
       to: email,

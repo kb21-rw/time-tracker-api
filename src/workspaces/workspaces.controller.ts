@@ -75,7 +75,7 @@ export class WorkspacesController {
     return this.workspacesService.create(req.user, createWorkspaceDto)
   }
 
-  // Add WorkspacePermissionGuard to specific methods that need it
+
   @UseGuards(WorkspacePermissionGuard)
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
   @Get()
@@ -203,8 +203,9 @@ export class WorkspacesController {
   async inviteUser(
     @Param('workspaceId') workspaceId: string,
     @Body() inviteUserToWorkspace: InviteUserDto,
+    @Req() req: RequestWithUser,
   ) {
-    return this.workspacesService.inviteUser(workspaceId, inviteUserToWorkspace)
+    return this.workspacesService.inviteUser(req.user.id, workspaceId, inviteUserToWorkspace)
   }
 
   @Post('invitations/accept')

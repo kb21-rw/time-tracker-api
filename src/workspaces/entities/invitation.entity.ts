@@ -7,9 +7,6 @@ export class WorkspaceInvitation {
     id: string
 
     @Column()
-    fullName: string
-
-    @Column()
     email: string
 
     @Column()

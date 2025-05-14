@@ -3,7 +3,6 @@ import { UserWorkspace } from '../workspaces/entities/user-workspace.entity'
 import { Workspace } from '../workspaces/entities/workspace.entity'
 
 export interface InvitationDetails {
-  fullName: string
   email: string
   token: string
   workspaceId: string
