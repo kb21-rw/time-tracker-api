@@ -10,6 +10,14 @@ export class AcceptInviteDto {
     token: string;
 
     @ApiProperty({
+        example: 'john doe',
+        required: true
+    })
+    @IsString()
+    @IsNotEmpty()
+    fullName: string
+
+    @ApiProperty({
         example: 'flow@123',
         required: true,
       })

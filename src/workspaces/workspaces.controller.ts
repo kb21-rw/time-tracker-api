@@ -201,8 +201,13 @@ export class WorkspacesController {
   async inviteUser(
     @Param('workspaceId') workspaceId: string,
     @Body() inviteUserToWorkspace: InviteUserDto,
+    @Req() req: RequestWithUser,
   ) {
-    return this.workspacesService.inviteUser(workspaceId, inviteUserToWorkspace)
+    return this.workspacesService.inviteUser(
+      req.user.id,
+      workspaceId,
+      inviteUserToWorkspace,
+    )
   }
 
   @Post('invitations/accept')
