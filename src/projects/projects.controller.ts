@@ -11,6 +11,7 @@ import {
   Get,
   HttpCode,
   Param,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common'
@@ -20,6 +21,8 @@ import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 import { UserRole } from 'src/util/role.enum'
 import { CreateProjectDto } from './dto/create-project.dto'
 import { ClientWorkspacePermissionGuard } from 'src/guards/client-workspace-permission.guard'
+import { ProjectClientPermissionGuard } from 'src/guards/project-client-permission.guard'
+import { UpdateProjectDto } from './dto/update-project.dto'
 
 @ApiTags('Projects')
 @UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
@@ -95,5 +98,55 @@ export class ProjectsController {
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async findAll(@Param('workspaceId') workspaceId: string) {
     return this.projectsService.findByWorkspaceId(workspaceId)
+  }
+
+  @WorkspaceRoles(UserRole.ADMIN)
+  @UseGuards(ProjectClientPermissionGuard, ClientWorkspacePermissionGuard)
+  @Patch('clients/:clientId/projects/:projectId')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Update a project' })
+  @ApiResponse({
+    status: 200,
+    schema: {
+      example: {
+        message: 'Project updated successfully',
+        project: {
+          id: 'fjfkafkfa...',
+          name: 'Updated Project Name',
+          clientId: 'newClientId...',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Client not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden to update this project',
+  })
+  @ApiResponse({
+    status: 409,
+    description:
+      'A project with the same name already exists under the selected client',
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async update(
+    @Param('workspaceId') workspaceId: string,
+    @Param('clientId') clientId: string,
+    @Param('projectId') projectId: string,
+    @Body() dto: UpdateProjectDto,
+  ) {
+    return this.projectsService.updateProject(
+      projectId,
+      dto,
+      clientId,
+      workspaceId,
+    )
   }
 }
