@@ -19,11 +19,11 @@ import {
 } from '@nestjs/swagger'
 import { CreateWorkspaceDto } from 'src/workspaces/dto/create-workspace.dto'
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
-import { RolesGuard } from 'src/guards/rolesGuard'
+import { RolesGuard } from 'src/guards/roles-guard'
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
 import { InviteUserDto } from './dto/invite-user.dto'
 import { AcceptInviteDto } from './dto/accept-invite.dto'
-import { WorkspacePermissionGuard } from 'src/guards/workspacePermission.guard'
+import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
 import { UserRole } from 'src/util/role.enum'
 import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 
@@ -164,9 +164,14 @@ export class WorkspacesController {
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   update(
     @Param('workspaceId') workspaceId: string,
+    @Req() req: RequestWithUser,
     @Body() updatedWorkspaceDto: UpdateWorkspaceDto,
   ) {
-    return this.workspacesService.update(workspaceId, updatedWorkspaceDto)
+    return this.workspacesService.update(
+      workspaceId,
+      updatedWorkspaceDto,
+      req.user.id,
+    )
   }
 
   @UseGuards(WorkspacePermissionGuard)
