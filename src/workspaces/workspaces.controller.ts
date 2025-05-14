@@ -75,9 +75,7 @@ export class WorkspacesController {
     return this.workspacesService.create(req.user, createWorkspaceDto)
   }
 
-  // Add WorkspacePermissionGuard to specific methods that need it
-  @UseGuards(WorkspacePermissionGuard)
-  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
+  @UseGuards(RolesGuard)
   @Get()
   @ApiOperation({ summary: 'Get all workspaces of the authenticated user' })
   @ApiResponse({
