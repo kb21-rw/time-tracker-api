@@ -1,7 +1,9 @@
+import { validate as isUUID } from 'uuid'
 import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  BadRequestException,
   Injectable,
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -18,6 +20,10 @@ export class ClientWorkspacePermissionGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest()
     const { workspaceId, clientId } = request.params
+
+    if (!isUUID(clientId)) {
+      throw new BadRequestException('Invalid clientId format')
+    }
 
     const client = await this.clientRepository.findOne({
       where: { id: clientId },
