@@ -1,8 +1,6 @@
 import {
   Injectable,
   ForbiddenException,
-  NotFoundException,
-  BadRequestException,
   ConflictException,
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -11,7 +9,6 @@ import { Workspace } from './entities/workspace.entity'
 import { UserWorkspace } from './entities/user-workspace.entity'
 import { User } from '../users/entities/user.entity'
 import { UserRole } from '../util/role.enum'
-import { verifyIfNameNotTaken } from 'src/util/helpers'
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
 import { InviteUserDto } from './dto/invite-user.dto'
 import { WorkspaceInvitation } from './entities/invitation.entity'
@@ -38,15 +35,29 @@ export class WorkspacesService {
     private authService: AuthService,
   ) {}
 
-  async create(user: User, { name }): Promise<Workspace> {
-    const existingWorkspaces = await this.userWorkspaceRepository.find({
-      where: { userId: String(user.id) },
-      relations: ['workspace'],
-    })
-    const existingWorkspace = existingWorkspaces.find(
-      existingWorkspace => existingWorkspace.workspace.name === name,
+  async findByName(
+    userId: string,
+    name: string,
+  ): Promise<UserWorkspace | null> {
+    return this.userWorkspaceRepository
+      .createQueryBuilder('user-workspace')
+      .innerJoinAndSelect('user-workspace.workspace', 'workspace')
+      .where('user-workspace.userId = :userId', { userId })
+      .andWhere('LOWER(workspace.name) = LOWER(:name)', { name: name.trim() })
+      .getOne()
+  }
+
+  private async checkIfExists(userId: string, name: string) {
+    const existingUserWorkspace = await this.findByName(userId, name)
+    console.log('existingWorkspace', existingUserWorkspace)
+    if (!existingUserWorkspace) return
+    throw new ConflictException(
+      `Workspace with the name ${existingUserWorkspace.workspace.name} already exists`,
     )
-    verifyIfNameNotTaken(existingWorkspace)
+  }
+  async create(user: User, { name }): Promise<Workspace> {
+    await this.checkIfExists(String(user.id), name)
+
     const workspace = this.workspaceRepository.create({
       name,
     })
@@ -93,7 +104,13 @@ export class WorkspacesService {
     return userWorkspace.workspace
   }
 
-  async update(workspaceId: string, updateWorkspaceDto: UpdateWorkspaceDto) {
+  async update(
+    workspaceId: string,
+    updateWorkspaceDto: UpdateWorkspaceDto,
+    userId: string,
+  ) {
+    await this.checkIfExists(userId, updateWorkspaceDto.name)
+
     await this.workspaceRepository.update(
       { id: workspaceId },
       { name: updateWorkspaceDto.name },
@@ -105,18 +122,20 @@ export class WorkspacesService {
     })
   }
 
-  async inviteUser(workspaceId: string, payload: InviteUserDto) {
-    const { email, fullName } = payload
+  async inviteUser(userId, workspaceId: string, payload: InviteUserDto) {
+    const { email } = payload
 
     await this.validateUser(email)
 
-    const invitation = await this.createInvitation(workspaceId, email, fullName)
+    const invitation = await this.createInvitation(workspaceId, email)
 
     const workspace = await this.workspaceRepository.findOne({
       where: { id: workspaceId },
     })
 
-    this.emailService.sendInvitationEmail(workspace.name, invitation)
+    const inviter = await this.userService.findOne(userId)
+
+    this.emailService.sendInvitationEmail(workspace.name, invitation, inviter.fullName)
 
     return { message: 'Invitation send successfully' }
   }
@@ -129,13 +148,9 @@ export class WorkspacesService {
     }
   }
 
-  private async createInvitation(
-    workspaceId: string,
-    email: string,
-    fullName: string,
-  ) {
+  private async createInvitation(workspaceId: string, email: string) {
     const token = this.jwtService.sign(
-      { email, fullName },
+      { email },
       {
         secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
         expiresIn: `${this.configService.get('JWT_VERIFICATION_TOKEN_EXPIRATION_TIME') || '900'}s`,
@@ -143,7 +158,6 @@ export class WorkspacesService {
     )
 
     const invitation = this.invitationRepository.create({
-      fullName,
       email,
       token,
       workspaceId,
@@ -165,7 +179,7 @@ export class WorkspacesService {
       const newUser = await this.authService.signup(
         {
           email: invitation.email,
-          fullName: invitation.fullName,
+          fullName: acceptInviteDto.fullName,
           password: acceptInviteDto.password,
         },
         UserRole.MEMBER,
@@ -186,5 +200,17 @@ export class WorkspacesService {
       }
       throw error
     }
+  }
+
+  async getWorkspaceUsers(workspaceId: string): Promise<User[]> {
+    const workspaceUsers = await this.userWorkspaceRepository.find({
+      where: {
+        workspaceId,
+        role: UserRole.MEMBER,
+      },
+      relations: ['user'],
+    })
+
+    return workspaceUsers.map(workspaceUser => workspaceUser.user)
   }
 }

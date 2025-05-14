@@ -19,11 +19,13 @@ import {
 } from '@nestjs/swagger'
 import { CreateWorkspaceDto } from 'src/workspaces/dto/create-workspace.dto'
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
-import { RolesGuard } from 'src/guards/rolesGuard'
+import { RolesGuard } from 'src/guards/roles-guard'
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto'
 import { InviteUserDto } from './dto/invite-user.dto'
 import { AcceptInviteDto } from './dto/accept-invite.dto'
-import { WorkspacePermissionGuard } from 'src/guards/workspacePermission.guard'
+import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
+import { UserRole } from 'src/util/role.enum'
+import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -31,6 +33,7 @@ import { WorkspacePermissionGuard } from 'src/guards/workspacePermission.guard'
 @UseGuards(JwtAuthGuard)
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
+
   @UseGuards(RolesGuard)
   @Post()
   @HttpCode(201)
@@ -72,6 +75,9 @@ export class WorkspacesController {
     return this.workspacesService.create(req.user, createWorkspaceDto)
   }
 
+
+  @UseGuards(WorkspacePermissionGuard)
+  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
   @Get()
   @ApiOperation({ summary: 'Get all workspaces of the authenticated user' })
   @ApiResponse({
@@ -100,7 +106,9 @@ export class WorkspacesController {
     return this.workspacesService.findByUser(req.user.id)
   }
 
-  @Get(':id')
+  @UseGuards(WorkspacePermissionGuard)
+  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
+  @Get(':workspaceId')
   @ApiOperation({ summary: 'Get a single workspace by ID' })
   @ApiResponse({
     status: 200,
@@ -121,25 +129,29 @@ export class WorkspacesController {
     description: "Dear user, you don't belong in this workspace",
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  findOne(@Req() req: RequestWithUser, @Param('id') id: string) {
-    return this.workspacesService.findAvailableById(req.user.id, id)
+  findOne(
+    @Req() req: RequestWithUser,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    return this.workspacesService.findAvailableById(req.user.id, workspaceId)
   }
 
-  @Patch(':id')
-  @UseGuards(RolesGuard,WorkspacePermissionGuard)
-  @ApiOperation({summary: 'Update workspace'})
+  @UseGuards(WorkspacePermissionGuard)
+  @WorkspaceRoles(UserRole.ADMIN)
+  @Patch(':workspaceId')
+  @ApiOperation({ summary: 'Update workspace' })
   @ApiResponse({
     status: 200,
     schema: {
       example: {
-        id: "6f4108ba-460b-4a96-819e-2c14a8736928",
-        name: "TG-RP/KITABI",
-      }
-    }
+        id: '6f4108ba-460b-4a96-819e-2c14a8736928',
+        name: 'TG-RP/KITABI',
+      },
+    },
   })
   @ApiResponse({
-    status:404,
-    description: 'Workspace not found '
+    status: 404,
+    description: 'Workspace not found ',
   })
   @ApiResponse({
     status: 401,
@@ -151,14 +163,20 @@ export class WorkspacesController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   update(
-  @Param('id') id:string, 
-  @Body()updatedWorkspaceDto: UpdateWorkspaceDto)
-  {
-    return this.workspacesService.update(id,updatedWorkspaceDto)
+    @Param('workspaceId') workspaceId: string,
+    @Req() req: RequestWithUser,
+    @Body() updatedWorkspaceDto: UpdateWorkspaceDto,
+  ) {
+    return this.workspacesService.update(
+      workspaceId,
+      updatedWorkspaceDto,
+      req.user.id,
+    )
   }
 
-  @UseGuards(RolesGuard, WorkspacePermissionGuard)
-  @Post(':id/invitations') 
+  @UseGuards(WorkspacePermissionGuard)
+  @WorkspaceRoles(UserRole.ADMIN)
+  @Post(':workspaceId/invitations')
   @HttpCode(201)
   @ApiOperation({ summary: 'Invite User to a workspace' })
   @ApiResponse({
@@ -179,29 +197,52 @@ export class WorkspacesController {
   })
   @ApiResponse({
     status: 403,
-    description: "Dear user, you can't Invite User to this workspace",
+    description: "Dear user, you can't invite User to this workspace",
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async inviteUser(
-  @Param('id') id: string,  
-  @Body() inviteUserToWorkspace: InviteUserDto,
-) {
-  return this.workspacesService.inviteUser(id, inviteUserToWorkspace)
-}
+    @Param('workspaceId') workspaceId: string,
+    @Body() inviteUserToWorkspace: InviteUserDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.workspacesService.inviteUser(req.user.id, workspaceId, inviteUserToWorkspace)
+  }
 
   @Post('invitations/accept')
-  @ApiResponse({ 
-      status: 200, 
-      description: 'Invitation successfully accepted',
+  @ApiResponse({
+    status: 200,
+    description: 'Invitation successfully accepted',
   })
   @ApiOperation({ summary: 'Accept a workspace invitation' })
-  @ApiResponse({ status: 400, description: 'Bad Request. Missing or invalid inputs.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Missing or invalid inputs.',
+  })
   @ApiResponse({ status: 403, description: 'Forbidden - Token expired' })
-  @ApiResponse({ status: 404, description: 'Invitation or workspace not found' })
+  @ApiResponse({
+    status: 404,
+    description: 'Invitation or workspace not found',
+  })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async acceptInvitation(
-  @Body() acceptInviteDto: AcceptInviteDto
-) {
-  return this.workspacesService.acceptInvite(acceptInviteDto);
-}
+  async acceptInvitation(@Body() acceptInviteDto: AcceptInviteDto) {
+    return this.workspacesService.acceptInvite(acceptInviteDto)
+  }
+
+  @UseGuards(WorkspacePermissionGuard)
+  @WorkspaceRoles(UserRole.ADMIN)
+  @Get(':workspaceId/users')
+  @ApiOperation({ description: 'Get all users in the workspace' })
+  @ApiResponse({ status: 200, description: 'List of users in the workspace' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - No access to workspace or token expired',
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async getWorkspaceUsers(@Param('workspaceId') workspaceId: string) {
+    return this.workspacesService.getWorkspaceUsers(workspaceId)
+  }
 }
