@@ -30,8 +30,6 @@ export class ProjectClientPermissionGuard implements CanActivate {
     })
 
     if (!project || project.client.id !== clientId) {
-      console.log('Client ID:', clientId)
-      console.log('Project Client ID:', project.client.id)
       throw new ForbiddenException(
         'The provided project does not belong to the specified client',
       )
