@@ -111,7 +111,7 @@ export class ProjectsService {
 
   async update(
     projectId: string,
-    { name, clientId: newClientId }: UpdateProjectDto,
+    { name, newClientId }: UpdateProjectDto,
     currentClientId: string,
     workspaceId: string,
   ): Promise<Project> {

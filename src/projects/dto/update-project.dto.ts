@@ -15,5 +15,5 @@ export class UpdateProjectDto {
   })
   @IsNotEmpty()
   @IsUUID()
-  clientId: string
+  newClientId: string
 }
