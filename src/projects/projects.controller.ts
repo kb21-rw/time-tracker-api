@@ -140,8 +140,13 @@ export class ProjectsController {
     @Param('workspaceId') workspaceId: string,
     @Param('clientId') clientId: string,
     @Param('projectId') projectId: string,
-    @Body() dto: UpdateProjectDto,
+    @Body() UpdateProjectDto: UpdateProjectDto,
   ) {
-    return this.projectsService.update(projectId, dto, clientId, workspaceId)
+    return this.projectsService.update(
+      projectId,
+      UpdateProjectDto,
+      clientId,
+      workspaceId,
+    )
   }
 }
