@@ -2,8 +2,14 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Project } from './entities/project.entity'
 import { Repository } from 'typeorm'
 import { CreateProjectDto } from './dto/create-project.dto'
-import { ConflictException } from '@nestjs/common'
+import {
+  ConflictException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common'
 import { Logger } from '@nestjs/common'
+import { Client } from 'src/clients/entities/client.entity'
+import { UpdateProjectDto } from './dto/update-project.dto'
 
 export class ProjectsService {
   private readonly logger = new Logger(ProjectsService.name)
@@ -12,6 +18,9 @@ export class ProjectsService {
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
   ) {}
+
+  @InjectRepository(Client)
+  private readonly clientRepository: Repository<Client>
 
   async findByName(clientId: string, name: string): Promise<Project | null> {
     return this.projectRepository
@@ -28,6 +37,55 @@ export class ProjectsService {
       `Project with the name ${existingProject.name} already exists`,
     )
   }
+
+  private async updateWithinSameClient(
+    projectId: string,
+    name: string,
+    clientId: string,
+  ): Promise<Project> {
+    await this.checkIfExists(clientId, name)
+
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      relations: ['client'],
+    })
+
+    project.name = name
+    await this.projectRepository.save(project)
+
+    return project
+  }
+
+  private async transferToNewClient(
+    projectId: string,
+    name: string,
+    newClientId: string,
+    workspaceId: string,
+  ): Promise<Project> {
+    const newClient = await this.clientRepository.findOne({
+      where: { id: newClientId, workspace: { id: workspaceId } },
+    })
+
+    if (!newClient) {
+      throw new NotFoundException(
+        'The new client does not belong to the current workspace',
+      )
+    }
+
+    await this.checkIfExists(newClientId, name)
+
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      relations: ['client'],
+    })
+
+    project.name = name
+    project.client = newClient
+    await this.projectRepository.save(project)
+
+    return project
+  }
+
   async create({ name }: CreateProjectDto, clientId: string): Promise<Project> {
     await this.checkIfExists(clientId, name)
 
@@ -49,5 +107,18 @@ export class ProjectsService {
     })
 
     return projects
+  }
+
+  async update(
+    projectId: string,
+    { name, newClientId }: UpdateProjectDto,
+    currentClientId: string,
+    workspaceId: string,
+  ): Promise<Project> {
+    if (currentClientId === newClientId) {
+      return this.updateWithinSameClient(projectId, name, currentClientId)
+    } else {
+      return this.transferToNewClient(projectId, name, newClientId, workspaceId)
+    }
   }
 }

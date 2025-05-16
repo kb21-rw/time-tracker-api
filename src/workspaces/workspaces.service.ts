@@ -49,7 +49,7 @@ export class WorkspacesService {
 
   private async checkIfExists(userId: string, name: string) {
     const existingUserWorkspace = await this.findByName(userId, name)
-    console.log('existingWorkspace', existingUserWorkspace)
+
     if (!existingUserWorkspace) return
     throw new ConflictException(
       `Workspace with the name ${existingUserWorkspace.workspace.name} already exists`,
