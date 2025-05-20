@@ -14,6 +14,7 @@ import { Client } from './clients/entities/client.entity'
 import { ClientsModule } from './clients/clients.module'
 import { Project } from './projects/entities/project.entity'
 import { ProjectsModule } from './projects/projects.module'
+import { TimeLogsModule } from './time-logs/time-logs.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ProjectsModule } from './projects/projects.module'
     EmailModule,
     ClientsModule,
     ProjectsModule,
+    TimeLogsModule,
   ],
 })
 export class AppModule {}
