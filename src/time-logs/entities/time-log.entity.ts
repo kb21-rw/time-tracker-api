@@ -35,10 +35,6 @@ export class TimeLog {
     @Column({ type: 'text', default: '' })
     description: string;
 
-    @Column({ type: 'float', default: 0 })
-    @IsNumber()
-    duration: number;
-
     @Column({ default: false })
     manualDuration: boolean;
 
