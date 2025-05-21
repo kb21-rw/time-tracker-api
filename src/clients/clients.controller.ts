@@ -20,7 +20,6 @@ import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
 import { ClientDto } from './dto/client.dto'
 import { WorkspaceRoles } from '../decorators/workspace-roles.decorator'
 import { UserRole } from 'src/util/role.enum'
-import { ClientWorkspacePermissionGuard } from 'src/guards/client-workspace-permission.guard'
 
 @ApiTags('Clients')
 @ApiBearerAuth()
@@ -96,7 +95,6 @@ export class ClientsController {
   }
 
   @WorkspaceRoles(UserRole.ADMIN)
-  @UseGuards(ClientWorkspacePermissionGuard)
   @Patch(':clientId')
   @ApiOperation({ summary: 'Update client' })
   @ApiResponse({
@@ -109,8 +107,12 @@ export class ClientsController {
     },
   })
   @ApiResponse({
+    status: 400,
+    description: 'Invalid client ID format',
+  })
+  @ApiResponse({
     status: 404,
-    description: 'Client not found ',
+    description: 'Client not found',
   })
   @ApiResponse({
     status: 401,
@@ -125,11 +127,15 @@ export class ClientsController {
     description: 'A client with the same name already exists',
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  update(
+  async update(
     @Param('workspaceId') workspaceId: string,
     @Param('clientId') clientId: string,
     @Body() updateClientDto: ClientDto,
   ) {
-    return this.clientsService.update(clientId, updateClientDto, workspaceId)
+    return await this.clientsService.update(
+      clientId,
+      updateClientDto,
+      workspaceId,
+    )
   }
 }
