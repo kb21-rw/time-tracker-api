@@ -20,18 +20,19 @@ import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
 import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 import { UserRole } from 'src/util/role.enum'
 import { CreateProjectDto } from './dto/create-project.dto'
-import { ClientWorkspacePermissionGuard } from 'src/guards/client-workspace-permission.guard'
-import { ProjectClientPermissionGuard } from 'src/guards/project-client-permission.guard'
 import { UpdateProjectDto } from './dto/update-project.dto'
+import { ClientsService } from 'src/clients/clients.service'
 
 @ApiTags('Projects')
 @UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
 @ApiBearerAuth()
 @Controller('workspaces/:workspaceId')
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(
+    private readonly projectsService: ProjectsService,
+    private readonly clientsService: ClientsService,
+  ) {}
 
-  @UseGuards(ClientWorkspacePermissionGuard)
   @WorkspaceRoles(UserRole.ADMIN)
   @Post('clients/:clientId/projects')
   @HttpCode(201)
@@ -63,11 +64,13 @@ export class ProjectsController {
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async create(
-    @Param('workspaceId') _workspaceId: string,
+    @Param('workspaceId') workspaceId: string,
     @Param('clientId') clientId: string,
-    @Body() dto: CreateProjectDto,
+    @Body() createDto: CreateProjectDto,
   ) {
-    return this.projectsService.create(dto, clientId)
+    const client = await this.clientsService.findOrFail(clientId, workspaceId)
+
+    return this.projectsService.create(createDto, client.id)
   }
 
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
@@ -101,7 +104,6 @@ export class ProjectsController {
   }
 
   @WorkspaceRoles(UserRole.ADMIN)
-  @UseGuards(ProjectClientPermissionGuard, ClientWorkspacePermissionGuard)
   @Patch('clients/:clientId/projects/:projectId')
   @HttpCode(200)
   @ApiOperation({ summary: 'Update a project' })
@@ -119,8 +121,12 @@ export class ProjectsController {
     },
   })
   @ApiResponse({
+    status: 400,
+    description: 'Invalid request data',
+  })
+  @ApiResponse({
     status: 404,
-    description: 'Client not found',
+    description: 'Client/project not found',
   })
   @ApiResponse({
     status: 401,
@@ -140,13 +146,14 @@ export class ProjectsController {
     @Param('workspaceId') workspaceId: string,
     @Param('clientId') clientId: string,
     @Param('projectId') projectId: string,
-    @Body() UpdateProjectDto: UpdateProjectDto,
+    @Body() updateDto: UpdateProjectDto,
   ) {
-    return this.projectsService.update(
-      projectId,
-      UpdateProjectDto,
-      clientId,
-      workspaceId,
-    )
+    const client = await this.clientsService.findOrFail(clientId, workspaceId)
+
+    if (updateDto.newClientId && updateDto.newClientId !== client.id) {
+      await this.clientsService.findOrFail(updateDto.newClientId, workspaceId)
+    }
+
+    return this.projectsService.update(projectId, updateDto, client.id)
   }
 }
