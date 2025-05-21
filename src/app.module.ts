@@ -15,6 +15,7 @@ import { ClientsModule } from './clients/clients.module'
 import { Project } from './projects/entities/project.entity'
 import { ProjectsModule } from './projects/projects.module'
 import { TimeLogsModule } from './time-logs/time-logs.module';
+import { TimeLog } from './time-logs/entities/time-log.entity'
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { TimeLogsModule } from './time-logs/time-logs.module';
           WorkspaceInvitation,
           Client,
           Project,
+          TimeLog,
         ],
         synchronize: true,
 

@@ -109,6 +109,19 @@ export class ProjectsService {
     return projects
   }
 
+  async findProjectInWorkspace(
+    workspaceId: string,
+    projectId: string,
+  ): Promise<Project | null> {
+    return this.projectRepository.findOne({
+      where: {
+        id: projectId,
+        client: { workspace: { id: workspaceId } },
+      },
+      relations: ['client', 'client.workspace'],
+    })
+  }
+
   async update(
     projectId: string,
     { name, newClientId }: UpdateProjectDto,
