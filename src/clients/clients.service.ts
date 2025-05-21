@@ -1,8 +1,13 @@
-import { ConflictException, Injectable } from '@nestjs/common'
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Client } from './entities/client.entity'
 import { ClientDto } from './dto/client.dto'
+import { isUUID } from 'class-validator'
 
 @Injectable()
 export class ClientsService {
@@ -10,6 +15,21 @@ export class ClientsService {
     @InjectRepository(Client)
     private readonly clientsRepository: Repository<Client>,
   ) {}
+  async findOrFail(id: string, workspaceId: string): Promise<Client> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid clientId format')
+    }
+    const client = await this.clientsRepository.findOne({
+      where: { id, workspace: { id: workspaceId } },
+      relations: ['workspace'],
+    })
+
+    if (!client) {
+      throw new ConflictException('Client not found')
+    }
+
+    return client
+  }
 
   async findByName(workspaceId: string, name: string): Promise<Client | null> {
     return this.clientsRepository
@@ -48,12 +68,9 @@ export class ClientsService {
   }
 
   async update(clientId: string, { name }: ClientDto, workspaceId: string) {
-    await this.checkIfExists(workspaceId, name)
+    const client = await this.findOrFail(clientId, workspaceId)
 
-    const client = await this.clientsRepository.findOne({
-      where: { id: clientId, workspace: { id: workspaceId } },
-      relations: ['workspace'],
-    })
+    await this.checkIfExists(workspaceId, name)
 
     client.name = name
     await this.clientsRepository.save(client)
