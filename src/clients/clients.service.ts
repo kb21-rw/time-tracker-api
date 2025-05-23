@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -25,7 +26,7 @@ export class ClientsService {
     })
 
     if (!client) {
-      throw new ConflictException('Client not found')
+      throw new NotFoundException('Client not found')
     }
 
     return client
