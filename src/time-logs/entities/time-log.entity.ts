@@ -36,7 +36,7 @@ export class TimeLog {
     description: string;
 
     @Column({ default: false })
-    manualDuration: boolean;
+    manualEntry: boolean;
 
     @CreateDateColumn()
     createdAt: Date;

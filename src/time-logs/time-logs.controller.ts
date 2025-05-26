@@ -11,7 +11,7 @@ import { RequestWithUser } from 'src/auth/types/request-with-user';
 @ApiTags('Time Logs')
 @UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
 @ApiBearerAuth()
-@Controller('workspaces/:workspaceId')
+@Controller('workspaces/:workspaceId/timeLogs')
 export class TimeLogsController {
   constructor(private readonly timeLogsService: TimeLogsService) {}
 
@@ -53,10 +53,14 @@ export class TimeLogsController {
     description: 'Internal Server Error',
   })
   async startTimeLog(
-    @Body() createTimeLogDto: CreateTimeLogDto,
+    @Body() startTimeLogDto: CreateTimeLogDto,
     @Param('workspaceId') workspaceId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.timeLogsService.startTimeLog(req.user.id, workspaceId, createTimeLogDto)
+    return this.timeLogsService.startTimeLog(
+      req.user.id,
+      workspaceId,
+      startTimeLogDto,
+    )
   }
 }
