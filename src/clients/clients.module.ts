@@ -16,6 +16,6 @@ import { WorkspacesModule } from 'src/workspaces/workspaces.module'
   ],
   controllers: [ClientsController],
   providers: [ClientsService],
-  exports: [],
+  exports: [ClientsService],
 })
 export class ClientsModule {}
