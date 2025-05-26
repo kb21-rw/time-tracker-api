@@ -1,12 +1,17 @@
-import { Controller, Post, Body, UseGuards, Param, Req } from '@nestjs/common';
-import { TimeLogsService } from './time-logs.service';
-import { CreateTimeLogDto } from './dto/create-time-log.dto';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator';
-import { UserRole } from 'src/util/role.enum';
-import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard';
-import { RequestWithUser } from 'src/auth/types/request-with-user';
+import { Controller, Post, Body, UseGuards, Param, Req } from '@nestjs/common'
+import { TimeLogsService } from './time-logs.service'
+import { CreateTimeLogDto } from './dto/create-time-log.dto'
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger'
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
+import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
+import { UserRole } from 'src/util/role.enum'
+import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
+import { RequestWithUser } from 'src/auth/types/request-with-user'
 
 @ApiTags('Time Logs')
 @UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
@@ -52,15 +57,11 @@ export class TimeLogsController {
     status: 500,
     description: 'Internal Server Error',
   })
-  async startTimeLog(
+  async start(
     @Body() startTimeLogDto: CreateTimeLogDto,
     @Param('workspaceId') workspaceId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.timeLogsService.startTimeLog(
-      req.user.id,
-      workspaceId,
-      startTimeLogDto,
-    )
+    return this.timeLogsService.start(req.user.id, workspaceId, startTimeLogDto)
   }
 }
