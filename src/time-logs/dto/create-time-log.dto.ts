@@ -13,15 +13,6 @@ export class CreateTimeLogDto {
   projectId: string
 
   @ApiProperty({
-    description: 'The user ID associated with the time log',
-    example: 2,
-    type: Number,
-    required: true,
-  })
-  @IsNotEmpty()
-  userId: number
-
-  @ApiProperty({
     description: 'The start time of the time log',
     type: Date,
     required: true,

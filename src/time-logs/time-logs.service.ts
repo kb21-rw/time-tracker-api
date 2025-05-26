@@ -14,8 +14,9 @@ export class TimeLogsService {
   ) {}
 
   async startTimeLog(
+    userId: number,
     workspaceId: string,
-    { description, projectId, startTime, userId }: CreateTimeLogDto,
+    { description, projectId, startTime }: CreateTimeLogDto,
   ): Promise<TimeLog> {
     
     const startDate = new Date(startTime)
@@ -38,7 +39,7 @@ export class TimeLogsService {
     }
 
     const newTimeLog = this.timeLogRepository.create({
-      user: { id: Number(userId) },
+      user: { id: userId },
       project: { id: projectId },
       workspace: { id: workspaceId },
       startDate,

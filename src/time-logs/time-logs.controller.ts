@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Param } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Param, Req } from '@nestjs/common';
 import { TimeLogsService } from './time-logs.service';
 import { CreateTimeLogDto } from './dto/create-time-log.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -6,6 +6,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator';
 import { UserRole } from 'src/util/role.enum';
 import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard';
+import { RequestWithUser } from 'src/auth/types/request-with-user';
 
 @ApiTags('Time Logs')
 @UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
@@ -54,7 +55,8 @@ export class TimeLogsController {
   async startTimeLog(
     @Body() createTimeLogDto: CreateTimeLogDto,
     @Param('workspaceId') workspaceId: string,
+    @Req() req: RequestWithUser,
   ) {
-    return this.timeLogsService.startTimeLog(workspaceId, createTimeLogDto)
+    return this.timeLogsService.startTimeLog(req.user.id, workspaceId, createTimeLogDto)
   }
 }
