@@ -23,6 +23,7 @@ export class TimeLog {
 
   @ManyToOne(() => Project, project => project.id, {
     onDelete: 'CASCADE',
+    nullable: true,
   })
   project: Project
 
@@ -31,14 +32,12 @@ export class TimeLog {
   })
   workspace: Workspace
 
-  @IsNotEmpty()
   @Column()
   startTime: Date
 
   @Column({ nullable: true })
   endTime: Date
 
-  @IsNotEmpty()
   @Column({ type: 'text', default: '' })
   description: string
 

@@ -32,21 +32,23 @@ export class TimeLogsService {
 
     this.validateStartTimeLog(startTime, activeTimeLog)
 
-    const project = await this.projectsService.findProjectInWorkspace(
-      workspaceId,
-      projectId,
-    )
+    if(projectId) {
+      const project = await this.projectsService.findProjectInWorkspace(
+        workspaceId,
+        projectId,
+      )
 
-    if (!project) {
-      throw new NotFoundException('Project not found')
+      if (!project) {
+        throw new NotFoundException('Project not found')
+      }
     }
 
     const newTimeLog = this.timeLogRepository.create({
       user: { id: userId },
-      project: { id: projectId },
+      project: projectId ? { id: projectId } : null,
       workspace: { id: workspaceId },
       startTime,
-      description,
+      description: description || '',
       endTime: null,
     })
     return await this.timeLogRepository.save(newTimeLog)
@@ -54,7 +56,7 @@ export class TimeLogsService {
 
   validateStartTimeLog(startTime: Date, activeTimeLog: TimeLog | null) {
     const now = new Date()
-    if (startTime.getTime() > now.getTime()) {
+    if (startTime > now) {
       throw new BadRequestException('Start time cannot be in the future')
     }
 

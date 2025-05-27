@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsNotEmpty, IsUUID } from 'class-validator'
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator'
 
 export class StartTimeEntryDto {
   @ApiProperty({
-     description: 'The start time of the time log',
-     type: Date,
-     required: true,
+    description: 'The start time of the time log',
+    type: Date,
+    required: true,
   })
   @IsNotEmpty()
   startTime: Date
@@ -15,7 +15,7 @@ export class StartTimeEntryDto {
     example: '38b667db-59a3-4117-b057-0d0f6e5619e7',
     type: String,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsUUID()
   projectId?: string
 
@@ -24,6 +24,7 @@ export class StartTimeEntryDto {
     example: 'Worked on project X',
     type: String,
   })
-  @IsNotEmpty()
+  @IsOptional()
+  @IsString()
   description?: string
 }
