@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsNotEmpty, IsUUID } from 'class-validator'
+import { IsNotEmpty, IsUUID, IsOptional } from 'class-validator'
 
 export class UpdateProjectDto {
   @ApiProperty({
@@ -11,9 +11,9 @@ export class UpdateProjectDto {
 
   @ApiProperty({
     example: 'ccw293jfninv-fjaiof...',
-    required: true,
+    required: false,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsUUID()
-  newClientId: string
+  newClientId?: string
 }
