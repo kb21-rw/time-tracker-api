@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { CreateTimeLogDto } from './dto/create-time-log.dto'
+import { StartTimeEntryDto } from './dto/create-time-log.dto'
 import { Repository } from 'typeorm'
 import { TimeLog } from './entities/time-log.entity'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -21,12 +21,12 @@ export class TimeLogsService {
   async start(
     userId: number,
     workspaceId: string,
-    { description, projectId, startTime }: CreateTimeLogDto,
+    { description, projectId, startTime }: StartTimeEntryDto,
   ): Promise<TimeLog> {
     const activeTimeLog = await this.timeLogRepository.findOne({
       where: {
         user: { id: Number(userId) },
-        endDate: null,
+        endTime: null,
       },
     })
 
@@ -47,7 +47,7 @@ export class TimeLogsService {
       workspace: { id: workspaceId },
       startTime,
       description,
-      endDate: null,
+      endTime: null,
     })
     return await this.timeLogRepository.save(newTimeLog)
   }

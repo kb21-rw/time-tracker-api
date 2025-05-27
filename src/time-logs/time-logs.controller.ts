@@ -1,6 +1,6 @@
 import { Controller, Post, Body, UseGuards, Param, Req } from '@nestjs/common'
 import { TimeLogsService } from './time-logs.service'
-import { CreateTimeLogDto } from './dto/create-time-log.dto'
+import { StartTimeEntryDto } from './dto/create-time-log.dto'
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -16,19 +16,19 @@ import { RequestWithUser } from 'src/auth/types/request-with-user'
 @ApiTags('Time Logs')
 @UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
 @ApiBearerAuth()
-@Controller('workspaces/:workspaceId/timeLogs')
+@Controller('workspaces/:workspaceId/timeEntries')
 export class TimeLogsController {
   constructor(private readonly timeLogsService: TimeLogsService) {}
 
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
   @Post('start')
-  @ApiOperation({ summary: 'Start a new time log' })
+  @ApiOperation({ summary: 'Start a new time entry' })
   @ApiResponse({
     status: 201,
     schema: {
       example: {
-        message: 'New time log started successfully',
-        timeLog: {
+        message: 'New time entry started successfully',
+        timeEntry: {
           id: '1234567890',
           startTime: '2023-10-01T12:00:00Z',
           description: 'Started working on project X',
@@ -51,17 +51,21 @@ export class TimeLogsController {
   })
   @ApiResponse({
     status: 409,
-    description: 'Conflict. User already has an active time log.',
+    description: 'Conflict. User already has an active time entry.',
   })
   @ApiResponse({
     status: 500,
     description: 'Internal Server Error',
   })
   async start(
-    @Body() startTimeLogDto: CreateTimeLogDto,
+    @Body() startTimeEntryDto: StartTimeEntryDto,
     @Param('workspaceId') workspaceId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.timeLogsService.start(req.user.id, workspaceId, startTimeLogDto)
+    return this.timeLogsService.start(
+      req.user.id,
+      workspaceId,
+      startTimeEntryDto,
+    )
   }
 }

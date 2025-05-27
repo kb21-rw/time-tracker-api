@@ -36,7 +36,7 @@ export class TimeLog {
   startTime: Date
 
   @Column({ nullable: true })
-  endDate: Date
+  endTime: Date
 
   @IsNotEmpty()
   @Column({ type: 'text', default: '' })
