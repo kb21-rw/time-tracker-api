@@ -75,9 +75,7 @@ export class WorkspacesController {
     return this.workspacesService.create(req.user, createWorkspaceDto)
   }
 
-
-  @UseGuards(WorkspacePermissionGuard)
-  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
+  @UseGuards(RolesGuard)
   @Get()
   @ApiOperation({ summary: 'Get all workspaces of the authenticated user' })
   @ApiResponse({
@@ -205,7 +203,11 @@ export class WorkspacesController {
     @Body() inviteUserToWorkspace: InviteUserDto,
     @Req() req: RequestWithUser,
   ) {
-    return this.workspacesService.inviteUser(req.user.id, workspaceId, inviteUserToWorkspace)
+    return this.workspacesService.inviteUser(
+      req.user.id,
+      workspaceId,
+      inviteUserToWorkspace,
+    )
   }
 
   @Post('invitations/accept')
