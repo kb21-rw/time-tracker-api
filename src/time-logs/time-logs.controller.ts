@@ -1,6 +1,6 @@
 import { Controller, Post, Body, UseGuards, Param, Req } from '@nestjs/common'
 import { TimeLogsService } from './time-logs.service'
-import { StartTimeEntryDto } from './dto/create-time-log.dto'
+import { StartTimeEntryDto } from './dto/start-time-entry.dto'
 import {
   ApiBearerAuth,
   ApiOperation,

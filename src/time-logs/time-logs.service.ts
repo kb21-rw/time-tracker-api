@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { StartTimeEntryDto } from './dto/create-time-log.dto'
+import { StartTimeEntryDto } from './dto/start-time-entry.dto'
 import { Repository } from 'typeorm'
 import { TimeLog } from './entities/time-log.entity'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -32,7 +32,7 @@ export class TimeLogsService {
 
     this.validateStartTimeLog(startTime, activeTimeLog)
 
-    if(projectId) {
+    if (projectId) {
       const project = await this.projectsService.findProjectInWorkspace(
         workspaceId,
         projectId,
