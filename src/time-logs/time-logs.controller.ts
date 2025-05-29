@@ -12,6 +12,7 @@ import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 import { UserRole } from 'src/util/role.enum'
 import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
 import { RequestWithUser } from 'src/auth/types/request-with-user'
+import { StopTimeEntryDto } from './dto/stop-time-entry.dto'
 
 @ApiTags('Time Logs')
 @UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
@@ -67,5 +68,43 @@ export class TimeLogsController {
       workspaceId,
       startTimeEntryDto,
     )
+  }
+
+  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
+  @Post('stop')
+  @ApiOperation({ summary: 'Stop the active time entry' })
+  @ApiResponse({
+    status: 201,
+    schema: {
+      example: {
+        message: 'Time entry stopped successfully',
+        timeEntry: {
+          id: '1234567890',
+          startTime: '2023-10-01T12:00:00Z',
+          endTime: '2023-10-01T14:00:00Z',
+          description: 'Finished working on project X',
+          projectId: 'project123',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Missing or invalid inputs.',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Forbidden. You do not have permission to perform this action.',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'No active time log to stop' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async stop(
+    @Body() stopDto: StopTimeEntryDto,
+    @Param('workspaceId') workspaceId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.timeLogsService.stop(req.user.id, workspaceId, stopDto)
   }
 }
