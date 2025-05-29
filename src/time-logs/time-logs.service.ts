@@ -39,44 +39,33 @@ export class TimeLogsService {
     workspaceId: string,
     { description, projectId, startTime }: StartTimeEntryDto,
   ): Promise<TimeLog> {
-    const activeTimeLog = await this.timeLogRepository.findOne({
-      where: {
-        user: { id: Number(userId) },
-        endTime: null,
-      },
-    })
-
-    this.validateStartTimeLog(startTime, activeTimeLog)
+    const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
+    if (activeTimeLog) {
+      throw new ConflictException('User already has an active time log')
+    }
+    this.validateStartTimeLog(new Date(startTime))
 
     if (projectId) {
-      const project = await this.projectsService.findProjectInWorkspace(
-        workspaceId,
-        projectId,
-      )
-
-      if (!project) {
-        throw new NotFoundException('Project not found')
-      }
+      await this.projectsService.findOrFail(projectId, workspaceId, 'workspace')
     }
+
+    description = description ? description.trim() : ''
 
     const newTimeLog = this.timeLogRepository.create({
       user: { id: userId },
       project: projectId ? { id: projectId } : null,
       workspace: { id: workspaceId },
       startTime,
-      description: description || '',
+      description,
       endTime: null,
     })
     return await this.timeLogRepository.save(newTimeLog)
   }
 
-  validateStartTimeLog(startTime: Date, activeTimeLog: TimeLog | null) {
+  validateStartTimeLog(startTime: Date) {
     const now = new Date()
     if (startTime > now) {
       throw new BadRequestException('Start time cannot be in the future')
-    }
-    if (activeTimeLog) {
-      throw new ConflictException('User already has an active time log')
     }
   }
 
