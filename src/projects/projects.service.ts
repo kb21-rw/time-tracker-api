@@ -19,14 +19,25 @@ export class ProjectsService {
     private readonly projectRepository: Repository<Project>,
   ) {}
 
-  async findOrFail(id: string, clientId: string): Promise<Project> {
+  async findOrFail(
+    id: string,
+    clientOrWorkspaceId: string,
+    type: 'client' | 'workspace' = 'client',
+  ): Promise<Project> {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid projectId format')
     }
 
+    let whereClause: Record<string, any>
+    if (type === 'client') {
+      whereClause = { id, client: { id: clientOrWorkspaceId } }
+    } else {
+      whereClause = { id, client: { workspace: { id: clientOrWorkspaceId } } }
+    }
+
     const project = await this.projectRepository.findOne({
-      where: { id, client: { id: clientId } },
-      relations: ['client'],
+      where: whereClause,
+      relations: ['client', 'client.workspace'],
     })
 
     if (!project) {
