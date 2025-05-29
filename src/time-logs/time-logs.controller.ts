@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Param, Req } from '@nestjs/common'
+import { Controller, Post, Body, UseGuards, Param, Req, Get } from '@nestjs/common'
 import { TimeLogsService } from './time-logs.service'
 import { StartTimeEntryDto } from './dto/start-time-entry.dto'
 import {
@@ -67,5 +67,37 @@ export class TimeLogsController {
       workspaceId,
       startTimeEntryDto,
     )
+  }
+@WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
+  @Get()
+   @ApiOperation({ description: 'Get all list of time logs' })
+   @ApiResponse({
+    status: 200,
+     schema: {
+      example: {
+        projects: [
+          {
+           startTime: "2025-05-29T12:58:44.352Z",
+           endTime: null,
+           description: "Worked on project X", 
+          },
+        ],
+      },
+    },
+  })
+   @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - No access to list of time logs or token expired',
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async getAll(
+    @Param('workspaceId') workspaceId: string,
+    @Req() req: RequestWithUser,
+  ){
+    return this.timeLogsService.GetAll(req.user.id, workspaceId)
   }
 }

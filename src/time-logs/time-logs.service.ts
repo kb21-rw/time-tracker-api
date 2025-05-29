@@ -64,4 +64,13 @@ export class TimeLogsService {
       throw new ConflictException('User already has an active time log')
     }
   }
+ async GetAll(userId: number, workspaceId: string): Promise<TimeLog[]> {
+  return await this.timeLogRepository.find({
+    where: {
+      user: { id: userId },
+      workspace: { id: workspaceId },
+    },
+    relations: ['user', 'workspace'],
+  });
+}
 }
