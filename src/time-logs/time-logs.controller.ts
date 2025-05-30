@@ -68,24 +68,28 @@ export class TimeLogsController {
       startTimeEntryDto,
     )
   }
-@WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
+  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
   @Get()
-   @ApiOperation({ description: 'Get all list of time logs' })
-   @ApiResponse({
+  @ApiOperation({ description: 'Get all list of time logs' })
+  @ApiResponse({
     status: 200,
-     schema: {
+    schema: {
       example: {
         projects: [
           {
-           startTime: "2025-05-29T12:58:44.352Z",
-           endTime: null,
-           description: "Worked on project X", 
+            startTime: '2025-05-29T12:58:44.352Z',
+            endTime: null,
+            description: 'Worked on project X',
           },
         ],
       },
     },
   })
-   @ApiResponse({
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Missing or invalid inputs.',
+  })
+  @ApiResponse({
     status: 401,
     description: 'Unauthorized',
   })
@@ -97,7 +101,7 @@ export class TimeLogsController {
   async getAll(
     @Param('workspaceId') workspaceId: string,
     @Req() req: RequestWithUser,
-  ){
+  ) {
     return this.timeLogsService.getAll(req.user.id, workspaceId)
   }
 }
