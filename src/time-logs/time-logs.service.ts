@@ -40,10 +40,8 @@ export class TimeLogsService {
     { description, projectId, startTime }: StartTimeEntryDto,
   ): Promise<TimeLog> {
     const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
-    if (activeTimeLog) {
-      throw new ConflictException('User already has an active time log')
-    }
-    this.validateStartTimeLog(new Date(startTime))
+
+    this.validateStartTimeLog(new Date(startTime), activeTimeLog)
 
     if (projectId) {
       await this.projectsService.findOrFail(projectId, workspaceId, 'workspace')
@@ -62,7 +60,10 @@ export class TimeLogsService {
     return await this.timeLogRepository.save(newTimeLog)
   }
 
-  validateStartTimeLog(startTime: Date) {
+  validateStartTimeLog(startTime: Date, activeTimeLog?: TimeLog): void {
+    if (activeTimeLog) {
+      throw new ConflictException('User already has an active time log')
+    }
     const now = new Date()
     if (startTime > now) {
       throw new BadRequestException('Start time cannot be in the future')
