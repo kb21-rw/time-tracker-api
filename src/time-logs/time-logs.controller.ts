@@ -75,10 +75,10 @@ export class TimeLogsController {
     status: 200,
     schema: {
       example: {
-        projects: [
+        timeLogs: [
           {
             startTime: '2025-05-29T12:58:44.352Z',
-            endTime: null,
+            endTime: '2025-05-29T13:40:44.352Z',
             description: 'Worked on project X',
           },
         ],
