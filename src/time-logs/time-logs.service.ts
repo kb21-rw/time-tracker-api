@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { StartTimeEntryDto } from './dto/start-time-entry.dto'
-import { Repository } from 'typeorm'
+import { IsNull, Not, Repository } from 'typeorm'
 import { TimeLog } from './entities/time-log.entity'
 import { InjectRepository } from '@nestjs/typeorm'
 import { ProjectsService } from 'src/projects/projects.service'
@@ -64,4 +64,14 @@ export class TimeLogsService {
       throw new ConflictException('User already has an active time log')
     }
   }
+ async getAll(userId: number, workspaceId: string): Promise<TimeLog[]> {
+  return await this.timeLogRepository.find({
+    where: {
+      user: { id: userId },
+      workspace: { id: workspaceId },
+      endTime: Not(IsNull()),
+    },
+    relations: ['user', 'workspace'],
+  })
+}
 }
