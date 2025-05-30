@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { StartTimeEntryDto } from './dto/start-time-entry.dto'
-import { Repository } from 'typeorm'
+import { IsNull, Not, Repository } from 'typeorm'
 import { TimeLog } from './entities/time-log.entity'
 import { InjectRepository } from '@nestjs/typeorm'
 import { ProjectsService } from 'src/projects/projects.service'
@@ -69,8 +69,9 @@ export class TimeLogsService {
     where: {
       user: { id: userId },
       workspace: { id: workspaceId },
+      endTime: Not(IsNull()),
     },
     relations: ['user', 'workspace'],
-  });
+  })
 }
 }
