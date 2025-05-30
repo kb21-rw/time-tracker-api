@@ -1,4 +1,12 @@
-import { Controller, Post, Body, UseGuards, Param, Req } from '@nestjs/common'
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Param,
+  Req,
+  Get,
+} from '@nestjs/common'
 import { TimeLogsService } from './time-logs.service'
 import { StartTimeEntryDto } from './dto/start-time-entry.dto'
 import {
@@ -85,17 +93,11 @@ export class TimeLogsController {
           description: 'Finished working on project X',
           projectId: 'project123',
         },
+        status: 403,
+        description:
+          'Forbidden. You do not have permission to perform this action.',
       },
     },
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad Request. Missing or invalid inputs.',
-  })
-  @ApiResponse({
-    status: 403,
-    description:
-      'Forbidden. You do not have permission to perform this action.',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'No active time log to stop' })
@@ -106,5 +108,42 @@ export class TimeLogsController {
     @Req() req: RequestWithUser,
   ) {
     return this.timeLogsService.stop(req.user.id, workspaceId, stopDto)
+  }
+
+  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
+  @Get()
+  @ApiOperation({ description: 'Get all list of time logs' })
+  @ApiResponse({
+    status: 200,
+    schema: {
+      example: {
+        timeLogs: [
+          {
+            startTime: '2025-05-29T12:58:44.352Z',
+            endTime: '2025-05-29T13:40:44.352Z',
+            description: 'Worked on project X',
+          },
+        ],
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Missing or invalid inputs.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - No access to list of time logs or token expired',
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async getAll(
+    @Param('workspaceId') workspaceId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.timeLogsService.getAll(req.user.id, workspaceId)
   }
 }
