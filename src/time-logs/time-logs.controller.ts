@@ -98,6 +98,6 @@ export class TimeLogsController {
     @Param('workspaceId') workspaceId: string,
     @Req() req: RequestWithUser,
   ){
-    return this.timeLogsService.GetAll(req.user.id, workspaceId)
+    return this.timeLogsService.getAll(req.user.id, workspaceId)
   }
 }
