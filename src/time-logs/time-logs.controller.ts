@@ -93,11 +93,17 @@ export class TimeLogsController {
           description: 'Finished working on project X',
           projectId: 'project123',
         },
-        status: 403,
-        description:
-          'Forbidden. You do not have permission to perform this action.',
       },
     },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Missing or invalid inputs.',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Forbidden. You do not have permission to perform this action.',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'No active time log to stop' })
