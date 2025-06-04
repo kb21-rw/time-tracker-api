@@ -41,10 +41,12 @@ export class TimeLogsService {
   ): Promise<TimeLog> {
     const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
 
-    this.validateStartTimeLog(new Date(startTime), activeTimeLog)
+    if (activeTimeLog) {
+      throw new ConflictException('User already has an active time log')
+    }
 
     if (projectId) {
-      await this.projectsService.findOrFail(projectId, workspaceId, 'workspace')
+      await this.projectsService.findByWorkspaceOrFail(projectId, workspaceId)
     }
 
     description = description ? description.trim() : ''
@@ -58,16 +60,6 @@ export class TimeLogsService {
       endTime: null,
     })
     return await this.timeLogRepository.save(newTimeLog)
-  }
-
-  validateStartTimeLog(startTime: Date, activeTimeLog?: TimeLog): void {
-    if (activeTimeLog) {
-      throw new ConflictException('User already has an active time log')
-    }
-    const now = new Date()
-    if (startTime > now) {
-      throw new BadRequestException('Start time cannot be in the future')
-    }
   }
 
   async stop(
@@ -95,7 +87,7 @@ export class TimeLogsService {
     }
 
     if (projectId) {
-      await this.projectsService.findOrFail(projectId, workspaceId, 'workspace')
+      await this.projectsService.findByWorkspaceOrFail(projectId, workspaceId)
 
       if (!activeTimeLog.project || activeTimeLog.project.id !== projectId) {
         activeTimeLog.project = { id: projectId } as Project
@@ -105,14 +97,15 @@ export class TimeLogsService {
     activeTimeLog.endTime = endTime
     return await this.timeLogRepository.save(activeTimeLog)
   }
- async getAll(userId: number, workspaceId: string): Promise<TimeLog[]> {
-  return await this.timeLogRepository.find({
-    where: {
-      user: { id: userId },
-      workspace: { id: workspaceId },
-      endTime: Not(IsNull()),
-    },
-    relations: ['user', 'workspace'],
-  })
-}
+
+  async getAll(userId: number, workspaceId: string): Promise<TimeLog[]> {
+    return await this.timeLogRepository.find({
+      where: {
+        user: { id: userId },
+        workspace: { id: workspaceId },
+        endTime: Not(IsNull()),
+      },
+      relations: ['user', 'workspace'],
+    })
+  }
 }
