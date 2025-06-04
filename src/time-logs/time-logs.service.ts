@@ -120,11 +120,7 @@ export class TimeLogsService {
     if (activeTimeLog) {
       throw new ConflictException('User already has an active time log')
     }
-
-    if (new Date(endTime) <= new Date(startTime)) {
-      throw new BadRequestException('End time must be after start time')
-    }
-
+    
     if (projectId) {
       await this.projectsService.findByWorkspaceOrFail(projectId, workspaceId)
     }

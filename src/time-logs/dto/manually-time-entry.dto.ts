@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator'
 import { IsNotInFuture } from '../validators/is-not-in-future.validator'
+import { IsNotBeforeStartTime } from '../validators/is-not-before-start-time.validator'
 
 export class ManuallyTimeEntryDto {
   @ApiProperty({
@@ -18,6 +19,7 @@ export class ManuallyTimeEntryDto {
     required: true,
   })
   @IsNotEmpty()
+  @IsNotBeforeStartTime('startTime', { message: 'End time cannot be before start time' })
   endTime: Date
 
   @ApiProperty({
