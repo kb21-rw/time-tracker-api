@@ -1,7 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator'
+import { IsNotInFuture } from '../validators/is-not-in-future.validator'
 
 export class ManuallyTimeEntryDto {
+  @ApiProperty({
+    description: 'The start time of the time log',
+    type: Date,
+    required: true,
+  })
+  @IsNotEmpty()
+  @IsNotInFuture({ message: 'Start time cannot be in the future' })
+  startTime: Date
+
   @ApiProperty({
     description: 'The end time of the time log',
     type: Date,
@@ -17,7 +27,7 @@ export class ManuallyTimeEntryDto {
   })
   @IsOptional()
   @IsUUID()
-  projectId: string
+  projectId?: string
 
   @ApiProperty({
     description: 'The description of the time log',
@@ -26,5 +36,5 @@ export class ManuallyTimeEntryDto {
   })
   @IsOptional()
   @IsString()
-  description: string
+  description?: string
 }

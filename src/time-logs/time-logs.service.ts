@@ -11,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { ProjectsService } from 'src/projects/projects.service'
 import { StopTimeEntryDto } from './dto/stop-time-entry.dto'
 import { Project } from 'src/projects/entities/project.entity'
+import { ManuallyTimeEntryDto } from './dto/manually-time-entry.dto'
 
 @Injectable()
 export class TimeLogsService {
@@ -107,5 +108,39 @@ export class TimeLogsService {
       },
       relations: ['user', 'workspace'],
     })
+  }
+
+  async createManualEntry(
+    userId: number,
+    workspaceId: string,
+    { projectId, description, startTime, endTime }: ManuallyTimeEntryDto
+  ): Promise<TimeLog> {
+    const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
+
+    if (activeTimeLog) {
+      throw new ConflictException('User already has an active time log')
+    }
+
+    if (new Date(endTime) <= new Date(startTime)) {
+      throw new BadRequestException('End time must be after start time')
+    }
+
+    if (projectId) {
+      await this.projectsService.findByWorkspaceOrFail(projectId, workspaceId)
+    }
+
+    description = description ? description.trim() : ''
+
+    const timeLog = this.timeLogRepository.create({
+      user: { id: userId },
+      project: projectId ? { id: projectId } : null,
+      workspace: { id: workspaceId },
+      startTime,
+      endTime,
+      description,
+      manualEntry: true,
+    })
+
+    return await this.timeLogRepository.save(timeLog)
   }
 }
