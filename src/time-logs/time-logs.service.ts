@@ -11,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { ProjectsService } from 'src/projects/projects.service'
 import { StopTimeEntryDto } from './dto/stop-time-entry.dto'
 import { Project } from 'src/projects/entities/project.entity'
+import { UpdateTimeLogDto } from './dto/update-time-log.dto'
 
 @Injectable()
 export class TimeLogsService {
@@ -19,6 +20,23 @@ export class TimeLogsService {
     private readonly timeLogRepository: Repository<TimeLog>,
     private readonly projectsService: ProjectsService,
   ) {}
+
+  async findOrFail(
+    id: string,
+    userId: number,
+    workspaceId: string,
+  ): Promise<TimeLog> {
+    const timeLog = await this.timeLogRepository.findOne({
+      where: { id, user: { id: userId }, workspace: { id: workspaceId } },
+      relations: ['user', 'workspace', 'project'],
+    })
+
+    if (!timeLog) {
+      throw new NotFoundException('Time log not found')
+    }
+
+    return timeLog
+  }
 
   async findActiveTimeLog(
     userId: number,
@@ -107,5 +125,38 @@ export class TimeLogsService {
       },
       relations: ['user', 'workspace'],
     })
+  }
+
+  async update(
+    timeLogId: string,
+    workspaceId: string,
+    userId: number,
+    { description, startTime, endTime, projectId }: UpdateTimeLogDto,
+  ): Promise<TimeLog> {
+    const timeLog = await this.findOrFail(timeLogId, userId, workspaceId)
+
+    if (startTime) {
+      timeLog.startTime = startTime
+    }
+
+    if (description && description.trim() !== timeLog.description) {
+      if (description.length > 3000) {
+        throw new BadRequestException(
+          'Description is too long, 3000 maximum characters allowed',
+        )
+      }
+      timeLog.description = description.trim()
+    }
+
+    if (projectId) {
+      await this.projectsService.findByWorkspaceOrFail(projectId, workspaceId)
+
+      if (!timeLog.project || timeLog.project.id !== projectId) {
+        timeLog.project = { id: projectId } as Project
+      }
+    }
+
+    timeLog.endTime = endTime
+    return await this.timeLogRepository.save(timeLog)
   }
 }
