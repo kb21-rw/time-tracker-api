@@ -11,7 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { ProjectsService } from 'src/projects/projects.service'
 import { StopTimeEntryDto } from './dto/stop-time-entry.dto'
 import { Project } from 'src/projects/entities/project.entity'
-import { ManuallyTimeEntryDto } from './dto/manually-time-entry.dto'
+import { ManualTimeEntryDto } from './dto/manual-time-entry.dto'
 
 @Injectable()
 export class TimeLogsService {
@@ -113,14 +113,14 @@ export class TimeLogsService {
   async createManualEntry(
     userId: number,
     workspaceId: string,
-    { projectId, description, startTime, endTime }: ManuallyTimeEntryDto
+    { projectId, description, startTime, endTime }: ManualTimeEntryDto,
   ): Promise<TimeLog> {
     const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
 
     if (activeTimeLog) {
       throw new ConflictException('User already has an active time log')
     }
-    
+
     if (projectId) {
       await this.projectsService.findByWorkspaceOrFail(projectId, workspaceId)
     }

@@ -21,7 +21,7 @@ import { UserRole } from 'src/util/role.enum'
 import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
 import { RequestWithUser } from 'src/auth/types/request-with-user'
 import { StopTimeEntryDto } from './dto/stop-time-entry.dto'
-import { ManuallyTimeEntryDto } from './dto/manually-time-entry.dto'
+import { ManualTimeEntryDto } from './dto/manual-time-entry.dto'
 
 @ApiTags('Time Logs')
 @UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
@@ -168,7 +168,7 @@ export class TimeLogsController {
       },
     },
   })
-  @ApiResponse( {
+  @ApiResponse({
     status: 400,
     description: 'Bad Request. Missing or invalid inputs.',
   })
@@ -180,14 +180,14 @@ export class TimeLogsController {
     status: 409,
     description: 'Conflict. User already has an active time entry.',
   })
-  @ApiResponse( {
+  @ApiResponse({
     status: 500,
     description: 'Internal Server Error',
   })
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
   @Post('manualEntry')
   async createManualTimeEntry(
-    @Body() manuallyTimeEntry: ManuallyTimeEntryDto,
+    @Body() manuallyTimeEntry: ManualTimeEntryDto,
     @Param('workspaceId') workspaceId: string,
     @Req() req: RequestWithUser,
   ) {

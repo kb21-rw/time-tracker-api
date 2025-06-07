@@ -3,7 +3,7 @@ import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator'
 import { IsNotInFuture } from '../validators/is-not-in-future.validator'
 import { IsNotBeforeStartTime } from '../validators/is-not-before-start-time.validator'
 
-export class ManuallyTimeEntryDto {
+export class ManualTimeEntryDto {
   @ApiProperty({
     description: 'The start time of the time log',
     type: Date,
