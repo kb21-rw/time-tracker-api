@@ -187,14 +187,14 @@ export class TimeLogsController {
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
   @Post('manualEntry')
   async createManualTimeEntry(
-    @Body() manuallyTimeEntry: ManualTimeEntryDto,
+    @Body() manualDto: ManualTimeEntryDto,
     @Param('workspaceId') workspaceId: string,
     @Req() req: RequestWithUser,
   ) {
     return this.timeLogsService.createManualEntry(
       req.user.id,
       workspaceId,
-      manuallyTimeEntry,
+      manualDto,
     )
   }
 }
