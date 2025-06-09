@@ -121,11 +121,18 @@ export class TimeLogsService {
       throw new ConflictException('User already has an active time log')
     }
 
+    if (description) {
+      if (description.length > 3000) {
+        throw new BadRequestException(
+          'Description is too long, 3000 maximum characters allowed',
+        )
+      }
+      description = description.trim() || ''
+    }
+
     if (projectId) {
       await this.projectsService.findByWorkspaceOrFail(projectId, workspaceId)
     }
-
-    description = description ? description.trim() : ''
 
     const timeLog = this.timeLogRepository.create({
       user: { id: userId },
