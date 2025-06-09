@@ -15,13 +15,13 @@ export function IsNotBeforeStartTime(
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(endTime: any, args: ValidationArguments) {
+        validate(endTime: Date, args: ValidationArguments) {
           const startTime = (args.object as any)[startTimeField]
           if (!endTime || !startTime) return true
-          return new Date(endTime) > new Date(startTime)
+          return new Date(endTime) > new Date(startTime as Date)
         },
-        defaultMessage(args: ValidationArguments) {
-          return `${args.property} must be after start time`
+        defaultMessage() {
+          return `End time must be after start time`
         },
       },
     })
