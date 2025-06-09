@@ -20,8 +20,8 @@ export function IsNotBeforeStartTime(
           if (!endTime || !startTime) return true 
             return (endTime as Date) > (startTime as Date)
         },
-        defaultMessage(args: ValidationArguments) {
-          return `${args.property} must be after start time`
+        defaultMessage() {
+          return `End time must be after start time`
         },
       },
     })
