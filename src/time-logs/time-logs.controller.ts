@@ -22,7 +22,7 @@ import { UserRole } from 'src/util/role.enum'
 import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
 import { RequestWithUser } from 'src/auth/types/request-with-user'
 import { StopTimeEntryDto } from './dto/stop-time-entry.dto'
-import { UpdateTimeLogDto } from './dto/update-time-log.dto'
+import { UpdateTimeEntryDto } from './dto/update-time-entry.dto'
 
 @ApiTags('Time Logs')
 @UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
@@ -198,7 +198,7 @@ export class TimeLogsController {
   async update(
     @Param('workspaceId') workspaceId: string,
     @Param('timeLogId') timeLogId: string,
-    @Body() updateDto: UpdateTimeLogDto,
+    @Body() updateDto: UpdateTimeEntryDto,
     @Req() req: RequestWithUser,
   ) {
     return this.timeLogsService.update(

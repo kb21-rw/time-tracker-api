@@ -2,9 +2,9 @@ import { ApiProperty } from '@nestjs/swagger'
 import { IsOptional, IsString, IsUUID } from 'class-validator'
 import { IsNotBeforeStartTime } from '../validators/is-not-before-start-time.validator'
 
-export class UpdateTimeLogDto {
+export class UpdateTimeEntryDto {
   @ApiProperty({
-    description: 'The new start time of the time log',
+    description: 'The new start time of the time entry',
     type: Date,
     required: false,
   })
@@ -12,7 +12,7 @@ export class UpdateTimeLogDto {
   startTime?: Date
 
   @ApiProperty({
-    description: 'The new end time of the time log',
+    description: 'The new end time of the time entry',
     type: Date,
     required: false,
   })

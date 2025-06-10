@@ -11,7 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { ProjectsService } from 'src/projects/projects.service'
 import { StopTimeEntryDto } from './dto/stop-time-entry.dto'
 import { Project } from 'src/projects/entities/project.entity'
-import { UpdateTimeLogDto } from './dto/update-time-log.dto'
+import { UpdateTimeEntryDto } from './dto/update-time-entry.dto'
 
 @Injectable()
 export class TimeLogsService {
@@ -137,7 +137,7 @@ export class TimeLogsService {
     timeLogId: string,
     workspaceId: string,
     userId: number,
-    { description, startTime, endTime, projectId }: UpdateTimeLogDto,
+    { description, startTime, endTime, projectId }: UpdateTimeEntryDto,
   ): Promise<TimeLog> {
     const timeLog = await this.findOrFail(timeLogId, userId, workspaceId)
 
