@@ -14,7 +14,7 @@ export function IsNotInFuture(validationOptions?: ValidationOptions) {
       validator: {
         validate(value: Date) {
           if (!value) return true // skip if empty, let @IsNotEmpty will handle it to avoid redundant checks
-          const date = value instanceof Date ? value : new Date(value)
+          const date = value instanceof Date ? value : value
           return date <= new Date()
         },
         defaultMessage() {
