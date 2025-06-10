@@ -128,7 +128,8 @@ export class TimeLogsService {
         workspace: { id: workspaceId },
         endTime: Not(IsNull()),
       },
-      relations: ['user', 'workspace'],
+      relations: ['project', 'project.client'],
+      order: { startTime: 'DESC' },
     })
   }
 
