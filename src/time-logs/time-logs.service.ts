@@ -21,15 +21,11 @@ export class TimeLogsService {
     private readonly projectsService: ProjectsService,
   ) {}
 
-  private setDescriptionIfValid(target: TimeLog, description?: string) {
-    if (description && description.trim() !== target.description) {
-      if (description.length > 3000) {
-        throw new BadRequestException(
-          'Description is too long, 3000 maximum characters allowed',
-        )
-      }
-
-      target.description = description.trim()
+  private validateDescriptionLength(description: string) {
+    if (description.length > 3000) {
+      throw new BadRequestException(
+        'Description is too long, 3000 maximum characters allowed',
+      )
     }
   }
 
@@ -107,7 +103,10 @@ export class TimeLogsService {
       throw new BadRequestException('End time must be after start time')
     }
 
-    this.setDescriptionIfValid(activeTimeLog, description)
+    if (description && description.trim() !== activeTimeLog.description) {
+      this.validateDescriptionLength(description)
+      activeTimeLog.description = description.trim()
+    }
 
     if (projectId) {
       await this.projectsService.findByWorkspaceOrFail(projectId, workspaceId)
@@ -145,7 +144,10 @@ export class TimeLogsService {
       timeLog.startTime = startTime
     }
 
-    this.setDescriptionIfValid(timeLog, description)
+    if (description && description.trim() !== timeLog.description) {
+      this.validateDescriptionLength(description)
+      timeLog.description = description.trim()
+    }
 
     if (projectId) {
       await this.projectsService.findByWorkspaceOrFail(projectId, workspaceId)
