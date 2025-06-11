@@ -59,6 +59,7 @@ export class TimeLogsService {
     }
 
     description = description ? description.trim() : ''
+    this.validateDescriptionLength(description)
 
     const newTimeLog = this.timeLogRepository.create({
       user: { id: userId },
@@ -129,10 +130,8 @@ export class TimeLogsService {
       throw new ConflictException('User already has an active time log')
     }
 
-    if (description) {
-      this.validateDescriptionLength(description)
-      description = description.trim() || ''
-    }
+    description = description ? description.trim() : ''
+    this.validateDescriptionLength(description)
 
     if (projectId) {
       await this.projectsService.findByWorkspaceOrFail(projectId, workspaceId)

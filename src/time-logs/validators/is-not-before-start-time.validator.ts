@@ -8,17 +8,19 @@ export function IsNotBeforeStartTime(
   startTimeField: string,
   validationOptions?: ValidationOptions,
 ) {
-  return function (object: unknown, propertyName: string) {
+  return function (targetObject: Object, propertyName: string) {
     registerDecorator({
       name: 'isNotBeforeStartTime',
-      target: object.constructor,
+      target: targetObject.constructor,
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(endTime: unknown, args: ValidationArguments) {
-          const startTime = (args.object as unknown)[startTimeField]
-          if (!endTime || !startTime) return true 
-            return (endTime as Date) > (startTime as Date)
+        validate(endTime: Date, validationargs: ValidationArguments) {
+          const startTime: Date = (validationargs.object as Object)[
+            startTimeField
+          ]
+          if (!endTime || !startTime) return true
+          return endTime > startTime
         },
         defaultMessage() {
           return `End time must be after start time`
