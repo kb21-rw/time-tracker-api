@@ -35,6 +35,14 @@ export class TimeLogsService {
       .getOne()
   }
 
+  private validateDescriptionLength(description: string) {
+    if (description.length > 3000) {
+      throw new BadRequestException(
+        'Description is too long, 3000 maximum characters allowed',
+      )
+    }
+  }
+
   async start(
     userId: number,
     workspaceId: string,
@@ -122,11 +130,7 @@ export class TimeLogsService {
     }
 
     if (description) {
-      if (description.length > 3000) {
-        throw new BadRequestException(
-          'Description is too long, 3000 maximum characters allowed',
-        )
-      }
+      this.validateDescriptionLength(description)
       description = description.trim() || ''
     }
 
