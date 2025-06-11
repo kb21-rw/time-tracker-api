@@ -16,7 +16,7 @@ export function IsNotBeforeStartTime(
       options: validationOptions,
       validator: {
         validate(endTime: unknown, args: ValidationArguments) {
-          const startTime = (args.object as any)[startTimeField]
+          const startTime = (args.object as unknown)[startTimeField]
           if (!endTime || !startTime) return true 
             return (endTime as Date) > (startTime as Date)
         },
