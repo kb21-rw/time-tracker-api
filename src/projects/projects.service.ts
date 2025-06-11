@@ -19,21 +19,31 @@ export class ProjectsService {
     private readonly projectRepository: Repository<Project>,
   ) {}
 
-  async findOrFail(id: string, clientId: string): Promise<Project> {
+  async findOrFail(id: string, condition: any) {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid projectId format')
     }
 
     const project = await this.projectRepository.findOne({
-      where: { id, client: { id: clientId } },
-      relations: ['client'],
+      where: condition,
+      relations: ['client', 'client.workspace'],
     })
 
     if (!project) {
       throw new NotFoundException('Project not found')
     }
-
     return project
+  }
+
+  async findByClientOrFail(id: string, clientId: string) {
+    return this.findOrFail(id, { id, client: { id: clientId } })
+  }
+
+  async findByWorkspaceOrFail(id: string, workspaceId: string) {
+    return this.findOrFail(id, {
+      id,
+      client: { workspace: { id: workspaceId } },
+    })
   }
 
   async findByName(clientId: string, name: string): Promise<Project | null> {
@@ -88,7 +98,7 @@ export class ProjectsService {
     { name, newClientId }: UpdateProjectDto,
     currentClientId: string,
   ): Promise<Project> {
-    const project = await this.findOrFail(projectId, currentClientId)
+    const project = await this.findByClientOrFail(projectId, currentClientId)
 
     const clientId = newClientId || currentClientId
     await this.checkIfExists(clientId, name, project.id)
