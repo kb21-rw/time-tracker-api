@@ -23,6 +23,7 @@ import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
 import { RequestWithUser } from 'src/auth/types/request-with-user'
 import { StopTimeEntryDto } from './dto/stop-time-entry.dto'
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto'
+import { ManualTimeEntryDto } from './dto/manual-time-entry.dto'
 
 @ApiTags('Time Logs')
 @UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
@@ -206,6 +207,50 @@ export class TimeLogsController {
       workspaceId,
       req.user.id,
       updateDto,
+    )
+  }
+
+  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
+  @Post('manualEntry')
+  @ApiResponse({
+    status: 201,
+    schema: {
+      example: {
+        timeLogs: [
+          {
+            startTime: '2025-05-29T12:58:44.352Z',
+            endTime: '2025-05-29T13:40:44.352Z',
+            description: 'Worked on project X',
+          },
+        ],
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Missing or invalid inputs.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict. User already has an active time entry.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal Server Error',
+  })
+  async createManualTimeEntry(
+    @Body() manualDto: ManualTimeEntryDto,
+    @Param('workspaceId') workspaceId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.timeLogsService.createManualEntry(
+      req.user.id,
+      workspaceId,
+      manualDto,
     )
   }
 }

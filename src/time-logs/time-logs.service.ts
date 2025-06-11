@@ -12,6 +12,7 @@ import { ProjectsService } from 'src/projects/projects.service'
 import { StopTimeEntryDto } from './dto/stop-time-entry.dto'
 import { Project } from 'src/projects/entities/project.entity'
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto'
+import { ManualTimeEntryDto } from './dto/manual-time-entry.dto'
 
 @Injectable()
 export class TimeLogsService {
@@ -76,6 +77,7 @@ export class TimeLogsService {
     }
 
     description = description ? description.trim() : ''
+    this.validateDescriptionLength(description)
 
     const newTimeLog = this.timeLogRepository.create({
       user: { id: userId },
@@ -158,6 +160,37 @@ export class TimeLogsService {
     }
 
     timeLog.endTime = endTime
+    return await this.timeLogRepository.save(timeLog)
+  }
+
+  async createManualEntry(
+    userId: number,
+    workspaceId: string,
+    { projectId, description, startTime, endTime }: ManualTimeEntryDto,
+  ): Promise<TimeLog> {
+    const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
+
+    if (activeTimeLog) {
+      throw new ConflictException('User already has an active time log')
+    }
+
+    description = description ? description.trim() : ''
+    this.validateDescriptionLength(description)
+
+    if (projectId) {
+      await this.projectsService.findByWorkspaceOrFail(projectId, workspaceId)
+    }
+
+    const timeLog = this.timeLogRepository.create({
+      user: { id: userId },
+      project: projectId ? { id: projectId } : null,
+      workspace: { id: workspaceId },
+      startTime,
+      endTime,
+      description,
+      manualEntry: true,
+    })
+
     return await this.timeLogRepository.save(timeLog)
   }
 }
