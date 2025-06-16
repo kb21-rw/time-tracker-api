@@ -211,7 +211,7 @@ export class TimeLogsController {
   }
 
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
-  @Post('manualEntry')
+  @Post()
   @ApiResponse({
     status: 201,
     schema: {
@@ -242,7 +242,7 @@ export class TimeLogsController {
     status: 500,
     description: 'Internal Server Error',
   })
-  async createManualTimeEntry(
+  async create(
     @Body() manualDto: ManualTimeEntryDto,
     @Param('workspaceId') workspaceId: string,
     @Req() req: RequestWithUser,
