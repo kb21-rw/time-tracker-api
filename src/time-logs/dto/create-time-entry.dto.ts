@@ -3,7 +3,7 @@ import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator'
 import { IsNotInFuture } from '../validators/is-not-in-future.validator'
 import { IsNotBeforeStartTime } from '../validators/is-not-before-start-time.validator'
 
-export class ManualTimeEntryDto {
+export class CreateTimeEntryDto {
   @ApiProperty({
     description: 'The start time of the time log',
     type: Date,
@@ -19,7 +19,9 @@ export class ManualTimeEntryDto {
     required: true,
   })
   @IsNotEmpty()
-  @IsNotBeforeStartTime('startTime', { message: 'End time cannot be before start time' })
+  @IsNotBeforeStartTime('startTime', {
+    message: 'End time cannot be before start time',
+  })
   endTime: Date
 
   @ApiProperty({

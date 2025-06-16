@@ -12,7 +12,7 @@ import { ProjectsService } from 'src/projects/projects.service'
 import { StopTimeEntryDto } from './dto/stop-time-entry.dto'
 import { Project } from 'src/projects/entities/project.entity'
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto'
-import { ManualTimeEntryDto } from './dto/manual-time-entry.dto'
+import { CreateTimeEntryDto } from './dto/create-time-entry.dto'
 
 @Injectable()
 export class TimeLogsService {
@@ -163,10 +163,10 @@ export class TimeLogsService {
     return await this.timeLogRepository.save(timeLog)
   }
 
-  async createManualEntry(
+  async create(
     userId: number,
     workspaceId: string,
-    { projectId, description, startTime, endTime }: ManualTimeEntryDto,
+    { projectId, description, startTime, endTime }: CreateTimeEntryDto,
   ): Promise<TimeLog> {
     const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
 
