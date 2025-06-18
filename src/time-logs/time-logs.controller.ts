@@ -7,6 +7,7 @@ import {
   Req,
   Get,
   Patch,
+  Delete,
 } from '@nestjs/common'
 import { TimeLogsService } from './time-logs.service'
 import { StartTimeEntryDto } from './dto/start-time-entry.dto'
@@ -248,5 +249,33 @@ export class TimeLogsController {
     @Req() req: RequestWithUser,
   ) {
     return this.timeLogsService.create(req.user.id, workspaceId, createDto)
+  }
+
+  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
+  @ApiOperation({ summary: 'Delete a time log entry' })
+  @ApiResponse({
+    status: 200,
+    description: 'Time log entry deleted successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Time log entry not found' })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Forbidden. You do not have permission to perform this action.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Missing or invalid inputs.',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  @Delete(':timeLogId')
+  async delete(
+    @Param('workspaceId') workspaceId: string,
+    @Param('timeLogId') timeLogId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    await this.timeLogsService.delete(timeLogId, workspaceId, req.user.id)
+    return { statusCode: 200, message: 'Time log entry deleted successfully' }
   }
 }
