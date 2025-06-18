@@ -13,6 +13,7 @@ import { StopTimeEntryDto } from './dto/stop-time-entry.dto'
 import { Project } from 'src/projects/entities/project.entity'
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto'
 import { CreateTimeEntryDto } from './dto/create-time-entry.dto'
+import { isUUID } from 'class-validator'
 
 @Injectable()
 export class TimeLogsService {
@@ -35,6 +36,9 @@ export class TimeLogsService {
     userId: number,
     workspaceId: string,
   ): Promise<TimeLog> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid time log ID format')
+    }
     const timeLog = await this.timeLogRepository.findOne({
       where: { id, user: { id: userId }, workspace: { id: workspaceId } },
       relations: ['user', 'workspace', 'project'],
@@ -192,5 +196,15 @@ export class TimeLogsService {
     })
 
     return await this.timeLogRepository.save(timeLog)
+  }
+
+  async delete(
+    timeLogId: string,
+    workspaceId: string,
+    userId: number,
+  ): Promise<void> {
+    const timeLog = await this.findOrFail(timeLogId, userId, workspaceId)
+
+    await this.timeLogRepository.remove(timeLog)
   }
 }
