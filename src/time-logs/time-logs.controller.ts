@@ -23,7 +23,7 @@ import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
 import { RequestWithUser } from 'src/auth/types/request-with-user'
 import { StopTimeEntryDto } from './dto/stop-time-entry.dto'
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto'
-import { ManualTimeEntryDto } from './dto/manual-time-entry.dto'
+import { CreateTimeEntryDto } from './dto/create-time-entry.dto'
 
 @ApiTags('Time Logs')
 @UseGuards(JwtAuthGuard, WorkspacePermissionGuard)
@@ -211,7 +211,7 @@ export class TimeLogsController {
   }
 
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
-  @Post('manualEntry')
+  @Post()
   @ApiResponse({
     status: 201,
     schema: {
@@ -242,15 +242,11 @@ export class TimeLogsController {
     status: 500,
     description: 'Internal Server Error',
   })
-  async createManualTimeEntry(
-    @Body() manualDto: ManualTimeEntryDto,
+  async create(
+    @Body() createDto: CreateTimeEntryDto,
     @Param('workspaceId') workspaceId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.timeLogsService.createManualEntry(
-      req.user.id,
-      workspaceId,
-      manualDto,
-    )
+    return this.timeLogsService.create(req.user.id, workspaceId, createDto)
   }
 }
