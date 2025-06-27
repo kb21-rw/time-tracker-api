@@ -26,6 +26,7 @@ import { AcceptInviteDto } from './dto/accept-invite.dto'
 import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
 import { UserRole } from 'src/util/role.enum'
 import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
+import { Public } from '../decorators/public.decorator'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -211,6 +212,7 @@ export class WorkspacesController {
   }
 
   @Post('invitations/accept')
+  @Public()
   @ApiResponse({
     status: 200,
     description: 'Invitation successfully accepted',
