@@ -44,6 +44,9 @@ export class TimeLog {
   @Column({ default: false })
   manualEntry: boolean
 
+  @Column({ default: false })
+  autoStopped: boolean
+
   @CreateDateColumn()
   createdAt: Date
 
