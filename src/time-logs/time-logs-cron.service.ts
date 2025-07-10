@@ -4,6 +4,7 @@ import { Cron } from "@nestjs/schedule";
 import { Repository } from "typeorm";
 import { TimeLog } from "./entities/time-log.entity";
 import { InjectRepository } from "@nestjs/typeorm";
+import { DateTime } from "luxon";
 
 
 @Injectable()
@@ -15,24 +16,24 @@ export class TimeLogsCronService {
 
    @Cron('0 0 * * *') 
    async handleAutoStopTimer(){
-    const now = new Date();
-
-    const yesterday = new Date(now);
-    yesterday.setDate(now.getDate() - 1);
-    yesterday.setHours(23, 59, 59, 999);
     
     const activeTimeLogs = await this.timeLogsRepository.find({
       where: {
         endTime: null,
       },
+      relations: ['user']
     })
 
     for(const timer of activeTimeLogs) {
-        timer.endTime = new Date(yesterday);
-        if(timer.startTime < yesterday){
-          timer.autoStopped = true;
-          await this.timeLogsRepository.save(timer);
-        }
+      const userTimeZone = timer.user.timeZone
+      const nowInUserTz = DateTime.now().setZone(userTimeZone) ;
+      const yesterday = nowInUserTz.minus({ days: 1 }).set({ hour: 23, minute: 59, second: 59 });
+        
+      if (nowInUserTz > yesterday && timer.startTime < yesterday.toJSDate()) {
+        timer.endTime = yesterday.toJSDate()
+        timer.autoStopped = true
+        await this.timeLogsRepository.save(timer)
+      }
     }
     
    }
