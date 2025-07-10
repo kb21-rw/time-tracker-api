@@ -31,7 +31,7 @@ export class TimeLogsCronService {
         
       if (nowInUserTz > yesterday && timer.startTime < yesterday.toJSDate()) {
         timer.endTime = yesterday.toJSDate()
-        timer.autoStopped = true
+        timer.autoStoppedAt = new Date() 
         await this.timeLogsRepository.save(timer)
       }
     }
