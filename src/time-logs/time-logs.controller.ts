@@ -158,6 +158,43 @@ export class TimeLogsController {
   }
 
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
+  @Get('active')
+  @ApiOperation({ summary: 'Get a running time log for a given user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Active time log successfully retrieved',
+    schema: {
+      example: {
+        timeLogs: [
+          {
+            startTime: '2025-05-29T12:58:44.352Z',
+            endTime: '2025-05-29T13:40:44.352Z',
+            description: 'Worked on project X',
+          },
+        ],
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Active time log entry not found' })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Forbidden. You do not have permission to perform this action.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Missing or invalid inputs.',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async getActiveTimeLog(
+    @Param('workspaceId') workspaceId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.timeLogsService.findActiveTimeLog(req.user.id, workspaceId)
+  }
+
+  @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
   @Patch(':timeLogId')
   @ApiOperation({ summary: 'Update a time log entry' })
   @ApiResponse({

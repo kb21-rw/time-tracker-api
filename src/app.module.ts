@@ -16,6 +16,7 @@ import { Project } from './projects/entities/project.entity'
 import { ProjectsModule } from './projects/projects.module'
 import { TimeLogsModule } from './time-logs/time-logs.module';
 import { TimeLog } from './time-logs/entities/time-log.entity'
+import { ScheduleModule } from '@nestjs/schedule'
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { TimeLog } from './time-logs/entities/time-log.entity'
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: process.env.DB_TYPE as 'postgres',
