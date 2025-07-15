@@ -146,6 +146,26 @@ export class TimeLogsService {
   ): Promise<TimeLog> {
     const timeLog = await this.findOrFail(timeLogId, userId, workspaceId)
 
+    if (startTime || endTime) {
+      const newStartTime = startTime || timeLog.startTime
+      const newEndTime = endTime || timeLog.endTime
+
+      await this.validateNoOverlapWithCompletedLogs(
+        userId,
+        workspaceId,
+        newStartTime,
+        newEndTime,
+        timeLogId,
+      )
+
+      const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
+      if (activeTimeLog && newEndTime >= activeTimeLog.startTime) {
+        throw new ConflictException(
+          'Cannot update time entry to overlap with active timer',
+        )
+      }
+    }
+
     if (startTime) {
       timeLog.startTime = startTime
     }
@@ -163,7 +183,10 @@ export class TimeLogsService {
       }
     }
 
-    timeLog.endTime = endTime
+    if (endTime) {
+      timeLog.endTime = endTime
+    }
+
     return await this.timeLogRepository.save(timeLog)
   }
 
@@ -172,10 +195,21 @@ export class TimeLogsService {
     workspaceId: string,
     { projectId, description, startTime, endTime }: CreateTimeEntryDto,
   ): Promise<TimeLog> {
-    const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
+    await this.validateNoOverlapWithCompletedLogs(
+      userId,
+      workspaceId,
+      startTime,
+      endTime,
+    )
 
+    // Manual entries must end before the active timer started to prevent overlap
+    const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
     if (activeTimeLog) {
-      throw new ConflictException('User already has an active time log')
+      if (endTime >= activeTimeLog.startTime) {
+        throw new ConflictException(
+          'Manual entry cannot overlap with active timer. Entry must end before the active timer started.',
+        )
+      }
     }
 
     description = description ? description.trim() : ''
@@ -206,5 +240,37 @@ export class TimeLogsService {
     const timeLog = await this.findOrFail(timeLogId, userId, workspaceId)
 
     await this.timeLogRepository.remove(timeLog)
+  }
+
+  private async validateNoOverlapWithCompletedLogs(
+    userId: number,
+    workspaceId: string,
+    startTime: Date,
+    endTime: Date,
+    excludeTimeLogId?: string,
+  ): Promise<void> {
+    // Two intervals overlap if: start1 < end2 AND start2 < end1
+    const overlappingTimeLogs: TimeLog[] = await this.timeLogRepository
+      .createQueryBuilder('timeLog')
+      .leftJoin('timeLog.user', 'user')
+      .leftJoin('timeLog.workspace', 'workspace')
+      .where('user.id = :userId', { userId })
+      .andWhere('workspace.id = :workspaceId', { workspaceId })
+      .andWhere('timeLog.endTime IS NOT NULL')
+      .andWhere(
+        '(timeLog.startTime < :endTime AND timeLog.endTime > :startTime)',
+        { startTime, endTime },
+      )
+      .andWhere(
+        excludeTimeLogId ? 'timeLog.id != :excludeId' : '1=1', //For excluding the current time log if updating
+        excludeTimeLogId ? { excludeId: excludeTimeLogId } : {},
+      )
+      .getMany()
+    const numberOfOverlappingLogs = overlappingTimeLogs.length
+    if (numberOfOverlappingLogs > 0) {
+      throw new ConflictException(
+        `Time range overlaps with ${numberOfOverlappingLogs} existing completed time log entries`,
+      )
+    }
   }
 }
