@@ -51,7 +51,7 @@ export class TimeLogsService {
     return timeLog
   }
 
-  async findActiveTimeLog(
+  async findActive(
     userId: number,
     workspaceId: string,
   ): Promise<TimeLog | null> {
@@ -70,7 +70,7 @@ export class TimeLogsService {
     workspaceId: string,
     { description, projectId, startTime }: StartTimeEntryDto,
   ): Promise<TimeLog> {
-    const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
+    const activeTimeLog = await this.findActive(userId, workspaceId)
 
     if (activeTimeLog) {
       throw new ConflictException('User already has an active time log')
@@ -99,7 +99,7 @@ export class TimeLogsService {
     workspaceId: string,
     { endTime, description, projectId }: StopTimeEntryDto,
   ): Promise<TimeLog> {
-    const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
+    const activeTimeLog = await this.findActive(userId, workspaceId)
 
     if (!activeTimeLog) {
       throw new NotFoundException('No active time log to stop')
@@ -172,7 +172,7 @@ export class TimeLogsService {
     workspaceId: string,
     { projectId, description, startTime, endTime }: CreateTimeEntryDto,
   ): Promise<TimeLog> {
-    const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
+    const activeTimeLog = await this.findActive(userId, workspaceId)
 
     if (activeTimeLog) {
       throw new ConflictException('User already has an active time log')

@@ -187,11 +187,11 @@ export class TimeLogsController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async getActiveTimeLog(
+  async getActive(
     @Param('workspaceId') workspaceId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.timeLogsService.findActiveTimeLog(req.user.id, workspaceId)
+    return this.timeLogsService.findActive(req.user.id, workspaceId)
   }
 
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
