@@ -8,7 +8,7 @@ import {
 } from 'typeorm'
 import { UserRole } from 'src/util/role.enum'
 import { Exclude } from 'class-transformer'
-import { UserWorkspace } from '../../workspaces/entities/user-workspace.entity'
+
 
 @Entity()
 export class User {
@@ -27,6 +27,9 @@ export class User {
 
   @Column()
   roles: UserRole
+
+  @Column()
+  timeZone: string
 
   @CreateDateColumn()
   created_at: Date

@@ -52,6 +52,7 @@ export class AuthController {
           fullName: 'Christelle Gihozo',
           email: 'christelle@gmail.com',
           roles: UserRole.ADMIN,
+          timeZone: 'Africa/Kigali',
         },
       },
     },
