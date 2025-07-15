@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsOptional, IsString, IsUUID } from 'class-validator'
 import { IsNotBeforeStartTime } from '../validators/is-not-before-start-time.validator'
+import { IsNotInFuture } from '../validators/is-not-in-future.validator'
 
 export class UpdateTimeEntryDto {
   @ApiProperty({
@@ -9,6 +10,7 @@ export class UpdateTimeEntryDto {
     required: false,
   })
   @IsOptional()
+  @IsNotInFuture({ message: 'Start time cannot be in the future' })
   startTime?: Date
 
   @ApiProperty({
