@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TimeLog } from './entities/time-log.entity';
 import { ProjectsModule } from 'src/projects/projects.module';
 import { WorkspacesModule } from 'src/workspaces/workspaces.module';
+import { TimeLogsCronService } from './time-logs-cron.service';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { WorkspacesModule } from 'src/workspaces/workspaces.module';
     WorkspacesModule,
   ],
   controllers: [TimeLogsController],
-  providers: [TimeLogsService],
+  providers: [TimeLogsService, TimeLogsCronService],
 })
 export class TimeLogsModule {}

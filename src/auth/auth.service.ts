@@ -79,10 +79,12 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10)
+    const timeZone = createUserDto.timeZone || 'UTC'
     const newUser = this.userRepository.create({
       ...createUserDto,
       roles: role,
       password: hashedPassword,
+      timeZone
     })
 
     const savedUser = await this.userRepository.save(newUser)
