@@ -51,7 +51,7 @@ export class TimeLogsService {
     return timeLog
   }
 
-  async findActiveTimeLog(
+  async findActive(
     userId: number,
     workspaceId: string,
   ): Promise<TimeLog | null> {
@@ -70,7 +70,7 @@ export class TimeLogsService {
     workspaceId: string,
     { description, projectId, startTime }: StartTimeEntryDto,
   ): Promise<TimeLog> {
-    const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
+    const activeTimeLog = await this.findActive(userId, workspaceId)
 
     if (activeTimeLog) {
       throw new ConflictException('User already has an active time log')
@@ -99,7 +99,7 @@ export class TimeLogsService {
     workspaceId: string,
     { endTime, description, projectId }: StopTimeEntryDto,
   ): Promise<TimeLog> {
-    const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
+    const activeTimeLog = await this.findActive(userId, workspaceId)
 
     if (!activeTimeLog) {
       throw new NotFoundException('No active time log to stop')
@@ -158,7 +158,7 @@ export class TimeLogsService {
         timeLogId,
       )
 
-      const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
+      const activeTimeLog = await this.findActive(userId, workspaceId)
       if (activeTimeLog && newEndTime >= activeTimeLog.startTime) {
         throw new ConflictException(
           'Cannot update time entry to overlap with active timer',
@@ -203,7 +203,7 @@ export class TimeLogsService {
     )
 
     // Manual entries must end before the active timer started to prevent overlap
-    const activeTimeLog = await this.findActiveTimeLog(userId, workspaceId)
+    const activeTimeLog = await this.findActive(userId, workspaceId)
     if (activeTimeLog) {
       if (endTime >= activeTimeLog.startTime) {
         throw new ConflictException(
