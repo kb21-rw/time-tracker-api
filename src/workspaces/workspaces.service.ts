@@ -135,7 +135,11 @@ export class WorkspacesService {
 
     const inviter = await this.userService.findOne(userId)
 
-    this.emailService.sendInvitationEmail(workspace.name, invitation, inviter.fullName)
+    this.emailService.sendInvitationEmail(
+      workspace.name,
+      invitation,
+      inviter.fullName,
+    )
 
     return { message: 'Invitation send successfully' }
   }
@@ -181,6 +185,7 @@ export class WorkspacesService {
           email: invitation.email,
           fullName: acceptInviteDto.fullName,
           password: acceptInviteDto.password,
+          timeZone: acceptInviteDto.timeZone,
         },
         UserRole.MEMBER,
       )
