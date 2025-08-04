@@ -191,7 +191,11 @@ export class TimeLogsController {
     @Param('workspaceId') workspaceId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.timeLogsService.findActive(req.user.id, workspaceId)
+    const activeTimeLog = await this.timeLogsService.findActive(
+      req.user.id,
+      workspaceId,
+    )
+    return activeTimeLog ?? {}
   }
 
   @WorkspaceRoles(UserRole.ADMIN, UserRole.MEMBER)
