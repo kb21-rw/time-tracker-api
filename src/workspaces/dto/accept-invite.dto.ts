@@ -1,27 +1,34 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger'
+import { IsNotEmpty, IsString } from 'class-validator'
 
 export class AcceptInviteDto {
-    @IsNotEmpty()
-    @ApiProperty({
-      example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-    })
-    @IsString()
-    token: string;
+  @IsNotEmpty()
+  @ApiProperty({
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  })
+  @IsString()
+  token: string
 
-    @ApiProperty({
-        example: 'john doe',
-        required: true
-    })
-    @IsString()
-    @IsNotEmpty()
-    fullName: string
+  @ApiProperty({
+    example: 'john doe',
+    required: true,
+  })
+  @IsString()
+  @IsNotEmpty()
+  fullName: string
 
-    @ApiProperty({
-        example: 'flow@123',
-        required: true,
-      })
-    @IsString()
-    @IsNotEmpty()
-    password: string
+  @ApiProperty({
+    example: 'flow@123',
+    required: true,
+  })
+  @IsString()
+  @IsNotEmpty()
+  password: string
+
+  @ApiProperty({
+    example: 'Africa/Kigali',
+    required: true,
+  })
+  @IsString()
+  timeZone: string
 }
