@@ -204,12 +204,10 @@ export class TimeLogsService {
 
     // Manual entries must end before the active timer started to prevent overlap
     const activeTimeLog = await this.findActive(userId, workspaceId)
-    if (activeTimeLog) {
-      if (endTime >= activeTimeLog.startTime) {
+    if (activeTimeLog && endTime >= activeTimeLog.startTime) {
         throw new ConflictException(
           'Manual entry cannot overlap with active timer. Entry must end before the active timer started.',
         )
-      }
     }
 
     description = description ? description.trim() : ''
