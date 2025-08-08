@@ -4,7 +4,7 @@ import {
   ValidationArguments,
 } from 'class-validator'
 
-export function IsDateNotInfFuture(validationOptions?: ValidationOptions) {
+export function IsDateNotInFuture(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
     registerDecorator({
       name: 'IsDateNotInfFuture',
