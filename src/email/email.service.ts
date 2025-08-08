@@ -177,7 +177,7 @@ export class EmailService {
 
     return this.sendMail({
       to: email,
-      subject: 'workspace invitation',
+      subject: 'Workspace invitation',
       text,
       html,
     })
