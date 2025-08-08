@@ -4,10 +4,10 @@ import {
   ValidationArguments,
 } from 'class-validator'
 
-export function IsNotInFuture(validationOptions?: ValidationOptions) {
+export function IsDateNotInFuture(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
     registerDecorator({
-      name: 'isNotInFuture',
+      name: 'IsDateNotInfFuture',
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
