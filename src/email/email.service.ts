@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt'
 import * as Mail from 'nodemailer/lib/mailer'
 import { createTransport } from 'nodemailer'
 import { ConfirmationEmailDetails, InvitationDetails } from 'src/util/types'
+import { UserRole } from 'src/util/role.enum'
 
 @Injectable()
 export class EmailService {
@@ -104,10 +105,10 @@ export class EmailService {
   }
 
   async sendConfirmationEmail({
-    workspaceName,
+    email,
     userName,
     newRole,
-    email,
+    workspaceName,
   }: ConfirmationEmailDetails): Promise<void> {
     const text = `Hi ${userName},\n\nYour role has changed to ${newRole} in the "${workspaceName}" workspace on Focus Flow.`
     const html = `<!doctype html>
@@ -230,7 +231,7 @@ export class EmailService {
 
     return this.sendMail({
       to: email,
-      subject: 'Workspace invitation',
+      subject: 'User role update',
       text,
       html,
     })
