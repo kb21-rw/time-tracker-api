@@ -2,6 +2,8 @@ import {
   Injectable,
   ForbiddenException,
   ConflictException,
+  NotFoundException,
+  BadRequestException,
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -28,6 +30,8 @@ export class WorkspacesService {
     private userWorkspaceRepository: Repository<UserWorkspace>,
     @InjectRepository(WorkspaceInvitation)
     private invitationRepository: Repository<WorkspaceInvitation>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private emailService: EmailService,
@@ -68,6 +72,7 @@ export class WorkspacesService {
       userId: String(user.id),
       workspaceId: savedWorkspace.id,
       role: UserRole.ADMIN,
+      isOwner: true,
     })
     if (!workspace.id) {
       throw new Error('Workspace ID is missing')
@@ -217,5 +222,40 @@ export class WorkspacesService {
     })
 
     return workspaceUsers.map(workspaceUser => workspaceUser.user)
+  }
+
+  async makeUserAnAdmin(userId: number, workspaceId: string) {
+    const userWorkspace = await this.userWorkspaceRepository.findOne({
+      where: { userId: String(userId), workspaceId },
+      relations: ['user', 'workspace'],
+    })
+
+    if (!userWorkspace) {
+      throw new NotFoundException("This user doesn't belong in this workspace")
+    }
+
+    if (
+      userWorkspace.role === UserRole.ADMIN &&
+      userWorkspace.user.roles === UserRole.ADMIN
+    ) {
+      throw new BadRequestException('This user is already an admin')
+    }
+
+    userWorkspace.role = UserRole.ADMIN
+    await this.updateUserRole(userId, UserRole.ADMIN)
+    this.userWorkspaceRepository.save(userWorkspace)
+    const { email, fullName: userName } = userWorkspace.user
+
+    this.emailService.sendConfirmationEmail({
+      email,
+      userName,
+      newRole: UserRole.ADMIN,
+      workspaceName: userWorkspace.workspace.name,
+    })
+    return userWorkspace
+  }
+
+  async updateUserRole(userId: number, userRole: UserRole) {
+    return await this.userRepository.update(userId, { roles: userRole })
   }
 }
