@@ -247,8 +247,11 @@ export class WorkspacesController {
     description: 'Forbidden - No access to workspace or token expired',
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async getWorkspaceUsers(@Param('workspaceId') workspaceId: string) {
-    return this.workspacesService.getWorkspaceUsers(workspaceId)
+  async getWorkspaceUsers(
+    @Param('workspaceId') workspaceId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.workspacesService.getWorkspaceUsers(workspaceId, req.user.id)
   }
 
   @UseGuards(WorkspacePermissionGuard)

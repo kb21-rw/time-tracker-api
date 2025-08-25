@@ -212,16 +212,21 @@ export class WorkspacesService {
     }
   }
 
-  async getWorkspaceUsers(workspaceId: string): Promise<User[]> {
+  async getWorkspaceUsers(
+    workspaceId: string,
+    userId: number,
+  ): Promise<User[]> {
     const workspaceUsers = await this.userWorkspaceRepository.find({
       where: {
         workspaceId,
-        role: UserRole.MEMBER,
+        isOwner: false,
       },
       relations: ['user'],
     })
 
-    return workspaceUsers.map(workspaceUser => workspaceUser.user)
+    return workspaceUsers
+      .filter(workspaceUser => workspaceUser.user.id !== userId)
+      .map(workspaceUser => workspaceUser.user)
   }
 
   async makeUserAnAdmin(userId: number, workspaceId: string) {
