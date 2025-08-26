@@ -248,10 +248,10 @@ export class WorkspacesService {
 
     userWorkspace.role = UserRole.ADMIN
     await this.updateUserRole(userId, UserRole.ADMIN)
-    this.userWorkspaceRepository.save(userWorkspace)
+    await this.userWorkspaceRepository.save(userWorkspace)
     const { email, fullName: userName } = userWorkspace.user
 
-    this.emailService.sendConfirmationEmail({
+    await this.emailService.sendConfirmationEmail({
       email,
       userName,
       newRole: UserRole.ADMIN,
