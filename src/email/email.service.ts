@@ -14,15 +14,39 @@ export class EmailService {
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
   ) {
+    // Use environment variables for email configuration with fallbacks
+    const emailPort = parseInt(this.configService.get('EMAIL_PORT') || '587')
+    const emailSecure = this.configService.get('EMAIL_SECURE') === 'true' || emailPort === 465
+
     this.nodemailerTransport = createTransport({
-      host: configService.get('EMAIL_HOST'),
-      port: 465,
-      secure: true,
+      host: this.configService.get('EMAIL_HOST'),
+      port: emailPort,
+      secure: emailSecure, // true for 465, false for other ports
       auth: {
-        user: configService.get('EMAIL_USER'),
-        pass: configService.get('EMAIL_PASSWORD'),
+        user: this.configService.get('EMAIL_USER'),
+        pass: this.configService.get('EMAIL_PASSWORD'),
       },
+      // Add timeout configurations
+      connectionTimeout: 60000, // 60 seconds
+      greetingTimeout: 30000,   // 30 seconds
+      socketTimeout: 60000,     // 60 seconds
+      // Add TLS options for better compatibility
+      tls: {
+        rejectUnauthorized: false // Only use this if you're having certificate issues
+      }
     })
+
+    // Verify the connection on startup
+    this.verifyConnection()
+  }
+
+  private async verifyConnection() {
+    try {
+      await this.nodemailerTransport.verify()
+      this.logger.log('Email transporter connection verified successfully')
+    } catch (error) {
+      this.logger.error('Email transporter connection failed:', error.message)
+    }
   }
 
   async sendResetPasswordLink(email: string, userId: number): Promise<void> {
@@ -98,9 +122,16 @@ export class EmailService {
     })
   }
 
-  private sendMail(options: Mail.Options) {
-    this.logger.log('Email sent out to', options.to)
-    return this.nodemailerTransport.sendMail(options)
+  private async sendMail(options: Mail.Options) {
+    try {
+      this.logger.log(`Attempting to send email to: ${options.to}`)
+      const result = await this.nodemailerTransport.sendMail(options)
+      this.logger.log(`Email sent successfully to: ${options.to}`)
+      return result
+    } catch (error) {
+      this.logger.error(`Failed to send email to ${options.to}:`, error.message)
+      throw error
+    }
   }
 
   async sendInvitationEmail(
