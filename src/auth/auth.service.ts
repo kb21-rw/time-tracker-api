@@ -59,6 +59,8 @@ export class AuthService {
       email: user?.email,
       role: user?.roles,
       id: user?.id,
+      fullName: user?.fullName,
+      timeZone: user?.timeZone,
     }
 
     return {
@@ -69,7 +71,10 @@ export class AuthService {
     }
   }
 
-  async signup(createUserDto: CreateUserDto, role: UserRole = UserRole.ADMIN): Promise<Omit<User, 'password'>> {
+  async signup(
+    createUserDto: CreateUserDto,
+    role: UserRole = UserRole.ADMIN,
+  ): Promise<Omit<User, 'password'>> {
     const userExist = await this.userRepository.findOne({
       where: { email: createUserDto.email },
     })
@@ -84,7 +89,7 @@ export class AuthService {
       ...createUserDto,
       roles: role,
       password: hashedPassword,
-      timeZone
+      timeZone,
     })
 
     const savedUser = await this.userRepository.save(newUser)
@@ -139,6 +144,6 @@ export class AuthService {
   }
 
   async findByEmail(email: string): Promise<User | undefined> {
-    return this.userRepository.findOne({where: {email}})
+    return this.userRepository.findOne({ where: { email } })
   }
 }
