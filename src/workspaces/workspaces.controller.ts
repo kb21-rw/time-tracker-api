@@ -27,6 +27,7 @@ import { WorkspacePermissionGuard } from 'src/guards/workspace-permission.guard'
 import { UserRole } from 'src/util/role.enum'
 import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 import { Public } from '../decorators/public.decorator'
+import { makeUserAnAdminDto } from './dto/make-user-an-admin.dto'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -246,7 +247,45 @@ export class WorkspacesController {
     description: 'Forbidden - No access to workspace or token expired',
   })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async getWorkspaceUsers(@Param('workspaceId') workspaceId: string) {
-    return this.workspacesService.getWorkspaceUsers(workspaceId)
+  async getWorkspaceUsers(
+    @Param('workspaceId') workspaceId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.workspacesService.getWorkspaceUsers(workspaceId, req.user.id)
+  }
+
+  @UseGuards(WorkspacePermissionGuard)
+  @WorkspaceRoles(UserRole.ADMIN)
+  @Post(':workspaceId/users/make-admin')
+  @ApiOperation({ summary: 'Make user an admin' })
+  @ApiResponse({
+    status: 200,
+    description: 'User has been made an admin',
+  })
+  @ApiResponse({
+    status: 404,
+    description: "This user doesn't belong in this workspace",
+  })
+  @ApiResponse({
+    status: 403,
+    description: "Dear user, you can't make this user an admin",
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async makeUserAnAdmin(
+    @Param('workspaceId') workspaceId: string,
+    @Body() makeUserAnAdminDto: makeUserAnAdminDto,
+  ) {
+    return this.workspacesService.makeUserAnAdmin(
+      makeUserAnAdminDto.userId,
+      workspaceId,
+    )
   }
 }

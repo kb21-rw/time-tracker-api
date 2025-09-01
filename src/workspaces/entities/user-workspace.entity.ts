@@ -23,6 +23,9 @@ export class UserWorkspace {
   @Column({ type: 'enum', enum: UserRole })
   role: UserRole
 
+  @Column({ default: false })
+  isOwner: boolean
+
   @CreateDateColumn()
   created_at: Date
 
