@@ -426,7 +426,7 @@ export class WorkspacesService {
       ) {
         throw error
       }
-      
+      console.error('Remove user error:', error)
       throw new InternalServerErrorException(
         'Failed to remove user from workspace',
       )
