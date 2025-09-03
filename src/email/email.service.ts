@@ -244,7 +244,9 @@ export class EmailService {
   ) {
     const { email, token } = payload
 
-    const url = `${this.configService.get('EMAIL_ACCEPT_INVITATION_URL')}?token=${token}`
+    // URL encode the token to prevent corruption during email transmission
+    const encodedToken = encodeURIComponent(token)
+    const url = `${this.configService.get('EMAIL_ACCEPT_INVITATION_URL')}?token=${encodedToken}`
     const text = `Hi,\n\n ${inviterName} has invited you to join the workspace "${workspaceName}". To accept this invitation, click here: ${url}`
 
     const html = `

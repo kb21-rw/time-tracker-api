@@ -185,18 +185,15 @@ export class WorkspacesService {
 
   async acceptInvite(acceptInviteDto: AcceptInviteDto) {
     try {
-      // Log token details for debugging
-      console.log('Token received:', acceptInviteDto.token?.substring(0, 20) + '...')
-      console.log('JWT_VERIFICATION_TOKEN_SECRET exists:', !!this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'))
+      // Decode the token in case it was URL encoded
+      const decodedToken = decodeURIComponent(acceptInviteDto.token)
       
-      const payload = this.jwtService.verify(acceptInviteDto.token, {
+      const payload = this.jwtService.verify(decodedToken, {
         secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
       })
       
-      console.log('Token payload:', payload)
-      
       const invitation = await this.invitationRepository.findOne({
-        where: { token: acceptInviteDto.token },
+        where: { token: decodedToken },
       })
 
       if (!invitation) {
