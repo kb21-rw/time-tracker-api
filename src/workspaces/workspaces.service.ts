@@ -221,13 +221,6 @@ export class WorkspacesService {
       await this.userWorkspaceRepository.save(userWorkspace)
       return { message: 'Invitation successful accepted' }
     } catch (error) {
-      console.error('Accept invite error:', {
-        name: error.name,
-        message: error.message,
-        tokenLength: acceptInviteDto.token?.length,
-        secretExists: !!this.configService.get('JWT_VERIFICATION_TOKEN_SECRET')
-      })
-      
       if (error.name === 'TokenExpiredError') {
         throw new ForbiddenException('Invitation token has expired')
       }
@@ -310,12 +303,6 @@ export class WorkspacesService {
           relations: ['user', 'workspace'],
         },
       )
-
-      if (!adminUserWorkspace) {
-        throw new ForbiddenException(
-          'You do not have access to this workspace',
-        )
-      }
 
       if (adminUserWorkspace.role !== UserRole.ADMIN && !adminUserWorkspace.isOwner) {
         throw new ForbiddenException(
