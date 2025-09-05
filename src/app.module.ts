@@ -10,6 +10,7 @@ import { Workspace } from './workspaces/entities/workspace.entity'
 import { UserWorkspace } from './workspaces/entities/user-workspace.entity'
 import { WorkspacesModule } from './workspaces/workspaces.module'
 import { WorkspaceInvitation } from './workspaces/entities/invitation.entity'
+import { WorkspaceAuditLog } from './workspaces/entities/workspace-audit-log.entity'
 import { Client } from './clients/entities/client.entity'
 import { ClientsModule } from './clients/clients.module'
 import { Project } from './projects/entities/project.entity'
@@ -38,6 +39,7 @@ import { ScheduleModule } from '@nestjs/schedule'
           Workspace,
           UserWorkspace,
           WorkspaceInvitation,
+          WorkspaceAuditLog,
           Client,
           Project,
           TimeLog,

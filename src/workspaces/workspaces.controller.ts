@@ -8,6 +8,9 @@ import {
   Req,
   HttpCode,
   Patch,
+  Delete,
+  BadRequestException,
+  Query,
 } from '@nestjs/common'
 import { WorkspacesService } from './workspaces.service'
 import { RequestWithUser } from 'src/auth/types/request-with-user'
@@ -28,6 +31,9 @@ import { UserRole } from 'src/util/role.enum'
 import { WorkspaceRoles } from 'src/decorators/workspace-roles.decorator'
 import { Public } from '../decorators/public.decorator'
 import { makeUserAnAdminDto } from './dto/make-user-an-admin.dto'
+import { RemoveUserResponseDto } from './dto/remove-user-response.dto'
+import { AuditLogQueryDto } from './dto/audit-log-query.dto'
+import { AuditLogResponseDto, AuditLogListResponseDto } from './dto/audit-log-response.dto'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -287,5 +293,110 @@ export class WorkspacesController {
       makeUserAnAdminDto.userId,
       workspaceId,
     )
+  }
+
+  @UseGuards(WorkspacePermissionGuard)
+  @WorkspaceRoles(UserRole.ADMIN)
+  @Delete(':workspaceId/users/:userId')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Remove user from workspace' })
+  @ApiResponse({
+    status: 200,
+    description: 'User successfully removed from workspace',
+    type: RemoveUserResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin permissions required or cannot remove workspace owner',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found or not a member of this workspace',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Cannot remove yourself from workspace',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal Server Error - Failed to remove user',
+  })
+  async removeUserFromWorkspace(
+    @Param('workspaceId') workspaceId: string,
+    @Param('userId') userId: string,
+    @Req() req: RequestWithUser,
+  ): Promise<RemoveUserResponseDto> {
+    const targetUserId = parseInt(userId, 10)
+    if (isNaN(targetUserId)) {
+      throw new BadRequestException('Invalid user ID')
+    }
+
+    // Extract IP address and user agent for audit logging
+    const ipAddress = req.ip || req.connection?.remoteAddress
+    const userAgent = req.get('User-Agent')
+
+    return this.workspacesService.removeUserFromWorkspace(
+      req.user.id,
+      workspaceId,
+      targetUserId,
+      ipAddress,
+      userAgent,
+    )
+  }
+
+  @UseGuards(WorkspacePermissionGuard)
+  @WorkspaceRoles(UserRole.ADMIN)
+  @Get(':workspaceId/audit-logs')
+  @ApiOperation({ summary: 'Get workspace audit logs' })
+  @ApiResponse({
+    status: 200,
+    description: 'Audit logs retrieved successfully',
+    type: AuditLogListResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin permissions required',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Workspace not found',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal Server Error',
+  })
+  async getWorkspaceAuditLogs(
+    @Param('workspaceId') workspaceId: string,
+    @Query() query: AuditLogQueryDto,
+  ): Promise<AuditLogListResponseDto> {
+    return this.workspacesService.getAuditLogs(workspaceId, query)
+  }
+
+  @UseGuards(WorkspacePermissionGuard)
+  @WorkspaceRoles(UserRole.ADMIN)
+  @Get(':workspaceId/audit-logs/:logId')
+  @ApiOperation({ summary: 'Get specific audit log entry' })
+  @ApiResponse({
+    status: 200,
+    description: 'Audit log entry retrieved successfully',
+    type: AuditLogResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin permissions required',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Audit log entry not found',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal Server Error',
+  })
+  async getAuditLogById(
+    @Param('workspaceId') workspaceId: string,
+    @Param('logId') logId: string,
+  ): Promise<AuditLogResponseDto> {
+    return this.workspacesService.getAuditLogById(workspaceId, logId)
   }
 }
