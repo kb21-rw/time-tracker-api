@@ -10,3 +10,10 @@ export interface InvitationDetails {
   created_at: Date
   updated_at: Date
 }
+
+export interface ConfirmationEmailDetails {
+  email: string
+  userName: string
+  newRole: string
+  workspaceName: string
+}

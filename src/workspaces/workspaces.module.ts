@@ -10,6 +10,7 @@ import { UsersModule } from 'src/users/users.module'
 import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule } from '@nestjs/config'
 import { WorkspaceInvitation } from './entities/invitation.entity'
+import { WorkspaceAuditLog } from './entities/workspace-audit-log.entity'
 import { AuthModule } from 'src/auth/auth.module'
 
 @Module({
@@ -19,6 +20,7 @@ import { AuthModule } from 'src/auth/auth.module'
       User,
       UserWorkspace,
       WorkspaceInvitation,
+      WorkspaceAuditLog,
     ]),
     JwtModule.register({}),
     ConfigModule,
