@@ -18,11 +18,7 @@ import { ProjectsModule } from './projects/projects.module'
 import { TimeLogsModule } from './time-logs/time-logs.module'
 import { TimeLog } from './time-logs/entities/time-log.entity'
 import { ScheduleModule } from '@nestjs/schedule'
-import { ReportsModule } from './reports/reports.module';
-import { ReportModule } from './report/report.module';
-import { ReportModule } from './report/report.module';
-import { DownloadableReportsModule } from './downloadable-reports/downloadable-reports.module';
-import { ReportsModule } from './reports/reports.module';
+import { ReportModule } from './report/report.module'
 
 @Module({
   imports: [
@@ -63,8 +59,6 @@ import { ReportsModule } from './reports/reports.module';
     ClientsModule,
     ProjectsModule,
     TimeLogsModule,
-    ReportsModule,
-    DownloadableReportsModule,
     ReportModule,
   ],
 })

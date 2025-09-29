@@ -6,6 +6,7 @@ import { Project } from 'src/projects/entities/project.entity'
 import { User } from 'src/users/entities/user.entity'
 import { TimeEntriesFilterQueryDto } from './dto/time-entries-filter.dto'
 import { Workspace } from 'src/workspaces/entities/workspace.entity'
+import { queueScheduler } from 'rxjs'
 
 @Injectable()
 export class ReportService {
@@ -65,7 +66,6 @@ export class ReportService {
 				statusCode: 404,
 			})
 		}
-
 		if (query.startDate && isNaN(query.startDate.getTime())) {
 			throw new BadRequestException({
 				error: 'INVALID_DATE_FORMAT',
@@ -114,17 +114,28 @@ export class ReportService {
 			.take(limit)
 			.getRawMany()
 
-		const timeEntries = rows.map(r => ({
-			userId: String(r.userId),
-			userName: r.userName,
-			projectId: r.projectId || null,
-			projectName: r.projectName || null,
-			activityId: null,
-			activityName: null,
-			duration: this.mapDurationHours(new Date(r.startTime), new Date(r.endTime)),
-			date: new Date(r.startTime).toISOString(),
-			description: r.description || '',
-		}))
+		const timeEntries = rows.map(r => {
+			const startTime = new Date(r.startTime)
+			const endTime = new Date(r.endTime)
+
+			// Validate dates
+			if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+				console.warn('Invalid date found:', { startTime: r.startTime, endTime: r.endTime })
+				return null // Skip invalid entries
+			}
+
+			return {
+				userId: String(r.userId),
+				userName: r.userName,
+				projectId: r.projectId || null,
+				projectName: r.projectName || null,
+				activityId: null,
+				activityName: null,
+				duration: this.mapDurationHours(startTime, endTime),
+				date: startTime.toISOString(),
+				description: r.description || '',
+			}
+		}).filter(entry => entry !== null) // Remove null entries
 
 		return {
 			workspaceId,

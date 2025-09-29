@@ -26,24 +26,27 @@ export class WorkspacePermissionGuard implements CanActivate {
       WORKSPACE_ROLES_KEY,
       context.getHandler(),
     )
+console.log("****")
+
     if (!expectedRoles || expectedRoles.length === 0) {
       throw new ForbiddenException('No permission metadata found')
     }
     const request = context.switchToHttp().getRequest()
+        console.log("expectedRoles***",request.user)
     const userId = request.user?.id
     const workspaceId = request.params?.workspaceId
 
     if (!isUUID(workspaceId)) {
       throw new BadRequestException('Invalid workspaceId format')
     }
-
+console.log("userId***",userId)
     const userWorkspace = await this.userWorkspaceRepository.findOne({
       where: {
         userId: String(userId),
         workspaceId: workspaceId,
       },
     })
-
+console.log("userWorkspace***yy",userWorkspace)
     if (!userWorkspace || !expectedRoles.includes(userWorkspace.role)) {
       throw new ForbiddenException(
         'You do not have permission to perform this action',

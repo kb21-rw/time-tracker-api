@@ -1,47 +1,54 @@
-import { Transform } from 'class-transformer'
+import { Transform, Type } from 'class-transformer';
 import {
-	IsISO8601,
-	IsInt,
-	IsOptional,
-	IsPositive,
-	IsUUID,
-	Max,
-	Min,
-} from 'class-validator'
+  IsISO8601,
+  IsInt,
+  IsOptional,
+  IsPositive,
+  IsUUID,
+  Max,
+  Min,
+} from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class TimeEntriesFilterQueryDto {
-	@IsISO8601({ strict: true }, { message: 'startDate must be in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)' })
-	@IsOptional()
-	@Transform(({ value }) => (value ? new Date(value) : undefined))
-	startDate?: Date
+  @ApiPropertyOptional({ example: '2025-09-01T00:00:00Z' })
+  @IsOptional()
+  @Transform(({ value }) => (value ? new Date(value) : undefined))
+  startDate?: Date;
 
-	@IsISO8601({ strict: true }, { message: 'endDate must be in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)' })
-	@IsOptional()
-	@Transform(({ value }) => (value ? new Date(value) : undefined))
-	endDate?: Date
+  @ApiPropertyOptional({ example: '2025-09-30T23:59:59Z' })
+  @IsOptional()
+  @Transform(({ value }) => (value ? new Date(value) : undefined))
+  endDate?: Date;
 
-	@IsOptional()
-	@IsInt()
-	@Min(1)
-	userId?: number
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  userId?: number;
 
-	@IsOptional()
-	@IsUUID()
-	projectId?: string
+  @ApiPropertyOptional({ example: 'abcd1234-5678-90ef-ghij-klmnopqrstuv' })
+  @IsOptional()
+  @IsUUID()
+  projectId?: string;
 
-	// Placeholder for future activity support
-	@IsOptional()
-	@IsUUID()
-	activityId?: string
 
-	@IsOptional()
-	@IsInt()
-	@Min(0)
-	offset?: number
+  @ApiPropertyOptional({ example: 0 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  offset?: number;
 
-	@IsOptional()
-	@IsInt()
-	@IsPositive()
-	@Max(100)
-	limit?: number
-} 
+  @ApiPropertyOptional({ example: 20 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  @Max(100)
+  limit?: number;
+}
+
+
+
