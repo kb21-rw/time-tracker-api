@@ -34,6 +34,7 @@ import { makeUserAnAdminDto } from './dto/make-user-an-admin.dto'
 import { RemoveUserResponseDto } from './dto/remove-user-response.dto'
 import { AuditLogQueryDto } from './dto/audit-log-query.dto'
 import { AuditLogResponseDto, AuditLogListResponseDto } from './dto/audit-log-response.dto'
+import { WorkspaceReportQueryDto, WorkspaceReportResponseDto } from './dto/report.dto'
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -399,4 +400,42 @@ export class WorkspacesController {
   ): Promise<AuditLogResponseDto> {
     return this.workspacesService.getAuditLogById(workspaceId, logId)
   }
+
+  // Add this endpoint to your WorkspacesController class
+
+@UseGuards(WorkspacePermissionGuard)
+@WorkspaceRoles(UserRole.ADMIN)
+@Get(':workspaceId/reports')
+@ApiOperation({ summary: 'Get workspace time tracking report' })
+@ApiResponse({
+  status: 200,
+  description: 'Workspace report retrieved successfully',
+  type: WorkspaceReportResponseDto,
+})
+@ApiResponse({
+  status: 403,
+  description: 'Forbidden - Admin permissions required',
+})
+@ApiResponse({
+  status: 404,
+  description: 'Workspace not found',
+})
+@ApiResponse({
+  status: 500,
+  description: 'Internal Server Error',
+})
+async getWorkspaceReport(
+  @Param('workspaceId') workspaceId: string,
+  @Query() query: WorkspaceReportQueryDto,
+  @Req() req: RequestWithUser,
+): Promise<WorkspaceReportResponseDto> {
+  return this.workspacesService.getWorkspaceReport(
+    workspaceId,
+    req.user.id,
+    query,
+  )
+}
+
+// Don't forget to add the import at the top of your controller:
+// import { WorkspaceReportQueryDto, WorkspaceReportResponseDto } from './dto/workspace-report.dto'
 }

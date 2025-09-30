@@ -18,7 +18,7 @@ import { ProjectsModule } from './projects/projects.module'
 import { TimeLogsModule } from './time-logs/time-logs.module'
 import { TimeLog } from './time-logs/entities/time-log.entity'
 import { ScheduleModule } from '@nestjs/schedule'
-import { ReportModule } from './report/report.module'
+// import { ReportModule } from './report/report.module'
 
 @Module({
   imports: [
@@ -59,7 +59,6 @@ import { ReportModule } from './report/report.module'
     ClientsModule,
     ProjectsModule,
     TimeLogsModule,
-    ReportModule,
-  ],
+  ]
 })
 export class AppModule {}
