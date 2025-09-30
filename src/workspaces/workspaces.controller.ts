@@ -332,7 +332,6 @@ export class WorkspacesController {
       throw new BadRequestException('Invalid user ID')
     }
 
-    // Extract IP address and user agent for audit logging
     const ipAddress = req.ip || req.connection?.remoteAddress
     const userAgent = req.get('User-Agent')
 
@@ -401,8 +400,6 @@ export class WorkspacesController {
     return this.workspacesService.getAuditLogById(workspaceId, logId)
   }
 
-  // Add this endpoint to your WorkspacesController class
-
 @UseGuards(WorkspacePermissionGuard)
 @WorkspaceRoles(UserRole.ADMIN)
 @Get(':workspaceId/reports')
@@ -436,6 +433,4 @@ async getWorkspaceReport(
   )
 }
 
-// Don't forget to add the import at the top of your controller:
-// import { WorkspaceReportQueryDto, WorkspaceReportResponseDto } from './dto/workspace-report.dto'
 }

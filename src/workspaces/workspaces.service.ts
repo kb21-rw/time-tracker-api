@@ -26,27 +26,30 @@ import { RemoveUserResponseDto } from './dto/remove-user-response.dto'
 import { AuditLogQueryDto } from './dto/audit-log-query.dto'
 import { AuditLogResponseDto, AuditLogListResponseDto } from './dto/audit-log-response.dto'
 import { ProjectTimeDto, UserReportDto, WorkspaceReportQueryDto, WorkspaceReportResponseDto } from './dto/report.dto'
+import { TimeLog } from 'src/time-logs/entities/time-log.entity'
 
 @Injectable()
 export class WorkspacesService {
-  constructor(
-    @InjectRepository(Workspace)
-    private workspaceRepository: Repository<Workspace>,
-    @InjectRepository(UserWorkspace)
-    private userWorkspaceRepository: Repository<UserWorkspace>,
-    @InjectRepository(WorkspaceInvitation)
-    private invitationRepository: Repository<WorkspaceInvitation>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(WorkspaceAuditLog)
-    private auditLogRepository: Repository<WorkspaceAuditLog>,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
-    private emailService: EmailService,
-    private userService: UsersService,
-    private authService: AuthService,
-    private dataSource: DataSource,
-  ) {}
+constructor(
+  @InjectRepository(Workspace)
+  private workspaceRepository: Repository<Workspace>,
+  @InjectRepository(UserWorkspace)
+  private userWorkspaceRepository: Repository<UserWorkspace>,
+  @InjectRepository(WorkspaceInvitation)
+  private invitationRepository: Repository<WorkspaceInvitation>,
+  @InjectRepository(User)
+  private readonly userRepository: Repository<User>,
+  @InjectRepository(WorkspaceAuditLog)
+  private auditLogRepository: Repository<WorkspaceAuditLog>,
+  @InjectRepository(TimeLog)  
+  private timeLogRepository: Repository<TimeLog>,  
+  private readonly jwtService: JwtService,
+  private readonly configService: ConfigService,
+  private emailService: EmailService,
+  private userService: UsersService,
+  private authService: AuthService,
+  private dataSource: DataSource,
+) {}
 
   async findByName(
     userId: string,
@@ -296,7 +299,7 @@ export class WorkspacesService {
     await queryRunner.startTransaction()
 
     try {
-      // 1. Validate admin permissions
+    
       const adminUserWorkspace = await queryRunner.manager.findOne(
         UserWorkspace,
         {
@@ -311,7 +314,7 @@ export class WorkspacesService {
         )
       }
 
-      // 2. Validate target user exists and is a workspace member
+    
       const targetUserWorkspace = await queryRunner.manager.findOne(
         UserWorkspace,
         {
@@ -326,14 +329,12 @@ export class WorkspacesService {
         )
       }
 
-      // 3. Prevent removing workspace owner
       if (targetUserWorkspace.isOwner) {
         throw new ForbiddenException(
           'Cannot remove the workspace owner',
         )
       }
 
-      // 4. Prevent self-removal (admin removing themselves)
       if (adminUserId === targetUserId) {
         throw new BadRequestException(
           'You cannot remove yourself from the workspace',
@@ -343,13 +344,11 @@ export class WorkspacesService {
       const removedUser = targetUserWorkspace.user
       const workspace = targetUserWorkspace.workspace
 
-      // 5. Remove user association from workspace
       await queryRunner.manager.delete(UserWorkspace, {
         userId: String(targetUserId),
         workspaceId,
       })
 
-      // 6. Create audit log entry
       const auditLog = queryRunner.manager.create(WorkspaceAuditLog, {
         workspaceId,
         performedByUserId: adminUserId,
@@ -365,12 +364,9 @@ export class WorkspacesService {
       })
       await queryRunner.manager.save(auditLog)
 
-      // 7. Commit transaction
       await queryRunner.commitTransaction()
 
-      // 8. Send email notifications (after successful transaction)
       try {
-        // Email to removed user
         await this.emailService.sendUserRemovedNotification({
           email: removedUser.email,
           userName: removedUser.fullName,
@@ -378,7 +374,6 @@ export class WorkspacesService {
           removedBy: adminUserWorkspace.user.fullName,
         })
 
-        // Email to admin
         await this.emailService.sendUserRemovalConfirmation({
           email: adminUserWorkspace.user.email,
           adminName: adminUserWorkspace.user.fullName,
@@ -387,12 +382,9 @@ export class WorkspacesService {
           workspaceName: workspace.name,
         })
       } catch (emailError) {
-        // Log email errors but don't fail the operation
         console.error('Failed to send removal notification emails:', emailError)
       }
 
-      // 9. Revoke access tokens (this would typically be handled by JWT expiration
-      // or by maintaining a blacklist, but for now we'll log it)
       console.log(
         `Access tokens for user ${targetUserId} in workspace ${workspaceId} should be revoked`,
       )
@@ -433,7 +425,6 @@ export class WorkspacesService {
       .leftJoinAndSelect('audit.targetUser', 'targetUser')
       .where('audit.workspaceId = :workspaceId', { workspaceId })
 
-    // Apply filters
     if (query.action) {
       queryBuilder.andWhere('audit.action = :action', { action: query.action })
     }
@@ -462,9 +453,8 @@ export class WorkspacesService {
       })
     }
 
-    // Pagination
     const page = query.page || 1
-    const limit = Math.min(query.limit || 50, 100) // Cap at 100 for performance
+    const limit = Math.min(query.limit || 50, 100) 
     const offset = (page - 1) * limit
 
     queryBuilder
@@ -517,14 +507,11 @@ export class WorkspacesService {
     }
   }
 
-  // Add this method to your WorkspacesService class
-
 async getWorkspaceReport(
   workspaceId: string,
   adminUserId: number,
   query: WorkspaceReportQueryDto,
 ): Promise<WorkspaceReportResponseDto> {
-  // 1. Verify admin has access to this workspace
   const adminUserWorkspace = await this.userWorkspaceRepository.findOne({
     where: { userId: String(adminUserId), workspaceId },
     relations: ['workspace'],
@@ -536,21 +523,18 @@ async getWorkspaceReport(
     )
   }
 
-  // 2. Set default date range (current month if not provided)
   const now = new Date()
   const startDate = query.startDate
     ? new Date(query.startDate)
     : new Date(now.getFullYear(), now.getMonth(), 1)
   const endDate = query.endDate
     ? new Date(query.endDate)
-    : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+    : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
 
-  // 3. Get all workspace members
   let workspaceUsersQuery = this.userWorkspaceRepository
     .createQueryBuilder('uw')
     .leftJoinAndSelect('uw.user', 'user')
     .where('uw.workspaceId = :workspaceId', { workspaceId })
-    .andWhere('uw.isOwner = :isOwner', { isOwner: false })
 
   if (query.userId) {
     workspaceUsersQuery = workspaceUsersQuery.andWhere(
@@ -561,101 +545,120 @@ async getWorkspaceReport(
 
   const workspaceUsers = await workspaceUsersQuery.getMany()
 
-  // 4. Build report data for each user
-  // Note: You'll need to adjust this based on your time tracking entities
-  // This assumes you have a TimeEntry entity related to projects and users
   const userReports: UserReportDto[] = []
   let totalDurationSeconds = 0
+  const allProjects = new Set<string>()
 
   for (const userWorkspace of workspaceUsers) {
     const user = userWorkspace.user
 
-    // Fetch time entries for this user in the workspace
-    // You'll need to adapt this query to your actual time tracking schema
-    const timeEntriesQuery = `
-      SELECT 
-        p.id as "projectId",
-        p.name as "projectName",
-        te.activity_name as "activityName",
-        SUM(te.duration_seconds) as "totalSeconds"
-      FROM time_entries te
-      INNER JOIN projects p ON te.project_id = p.id
-      WHERE te.user_id = $1
-        AND te.workspace_id = $2
-        AND te.tracked_at >= $3
-        AND te.tracked_at <= $4
-      GROUP BY p.id, p.name, te.activity_name
-      ORDER BY p.name, te.activity_name
-    `
+    const timeLogs = await this.timeLogRepository
+      .createQueryBuilder('timeLog')
+      .leftJoinAndSelect('timeLog.project', 'project')
+      .where('timeLog.user.id = :userId', { userId: user.id })
+      .andWhere('timeLog.workspace.id = :workspaceId', { workspaceId })
+      .andWhere('timeLog.endTime IS NOT NULL') // Only completed logs
+      .andWhere('timeLog.startTime >= :startDate', { startDate })
+      .andWhere('timeLog.startTime <= :endDate', { endDate })
+      .orderBy('project.name', 'ASC')
+      .addOrderBy('timeLog.startTime', 'ASC')
+      .getMany()
 
-    const timeEntries = await this.dataSource.query(timeEntriesQuery, [
-      user.id,
-      workspaceId,
-      startDate,
-      endDate,
-    ])
+    if (timeLogs.length === 0) {
+      continue
+    }
 
-    // Group by project
-    const projectsMap = new Map<string, ProjectTimeDto>()
+    const projectsMap = new Map<string, {
+      projectId: string
+      projectName: string
+      logs: TimeLog[]
+    }>()
 
-    for (const entry of timeEntries) {
-      if (!projectsMap.has(entry.projectId)) {
-        projectsMap.set(entry.projectId, {
-          projectId: entry.projectId,
-          projectName: entry.projectName,
-          activities: [],
-          totalDuration: '00:00:00',
-          totalDurationInSeconds: 0,
+    for (const log of timeLogs) {
+      const projectId = log.project?.id || 'no-project'
+      const projectName = log.project?.name || 'No Project'
+
+      if (!projectsMap.has(projectId)) {
+        projectsMap.set(projectId, {
+          projectId,
+          projectName,
+          logs: [],
         })
       }
 
-      const project = projectsMap.get(entry.projectId)
-      const durationSeconds = parseInt(entry.totalSeconds) || 0
-
-      project.activities.push({
-        activityName: entry.activityName,
-        duration: this.formatDuration(durationSeconds),
-        durationInSeconds: durationSeconds,
-      })
-
-      project.totalDurationInSeconds += durationSeconds
+      projectsMap.get(projectId).logs.push(log)
+      if (log.project?.id) {
+        allProjects.add(log.project.id)
+      }
     }
 
-    // Calculate project totals and user total
     const projects: ProjectTimeDto[] = []
     let userTotalSeconds = 0
 
-    for (const project of projectsMap.values()) {
-      project.totalDuration = this.formatDuration(
-        project.totalDurationInSeconds,
-      )
-      projects.push(project)
-      userTotalSeconds += project.totalDurationInSeconds
-    }
+    for (const projectData of projectsMap.values()) {
+      const activities: Array<{
+        activityName: string
+        duration: string
+        durationInSeconds: number
+      }> = []
 
-    if (projects.length > 0) {
-      userReports.push({
-        userId: user.id,
-        userName: user.fullName,
-        userEmail: user.email,
-        projects,
-        totalDuration: this.formatDuration(userTotalSeconds),
-        totalDurationInSeconds: userTotalSeconds,
+      let projectTotalSeconds = 0
+
+      const activitiesMap = new Map<string, number>()
+
+      for (const log of projectData.logs) {
+        const durationSeconds = this.calculateDuration(log.startTime, log.endTime)
+        const activityName = log.description || 'Untitled Activity'
+
+        if (activitiesMap.has(activityName)) {
+          activitiesMap.set(
+            activityName,
+            activitiesMap.get(activityName) + durationSeconds,
+          )
+        } else {
+          activitiesMap.set(activityName, durationSeconds)
+        }
+
+        projectTotalSeconds += durationSeconds
+      }
+
+      for (const [activityName, durationSeconds] of activitiesMap.entries()) {
+        activities.push({
+          activityName,
+          duration: this.formatDuration(durationSeconds),
+          durationInSeconds: durationSeconds,
+        })
+      }
+
+      projects.push({
+        projectId: projectData.projectId,
+        projectName: projectData.projectName,
+        activities: activities.sort((a, b) => 
+          b.durationInSeconds - a.durationInSeconds
+        ),
+        totalDuration: this.formatDuration(projectTotalSeconds),
+        totalDurationInSeconds: projectTotalSeconds,
       })
 
-      totalDurationSeconds += userTotalSeconds
+      userTotalSeconds += projectTotalSeconds
     }
+
+    projects.sort((a, b) => b.totalDurationInSeconds - a.totalDurationInSeconds)
+
+    userReports.push({
+      userId: user.id,
+      userName: user.fullName,
+      userEmail: user.email,
+      projects,
+      totalDuration: this.formatDuration(userTotalSeconds),
+      totalDurationInSeconds: userTotalSeconds,
+    })
+
+    totalDurationSeconds += userTotalSeconds
   }
 
-  // 5. Calculate unique projects count
-  const uniqueProjects = new Set<string>()
-  userReports.forEach(user => {
-    user.projects.forEach(project => {
-      uniqueProjects.add(project.projectId)
-    })
-  })
+  userReports.sort((a, b) => b.totalDurationInSeconds - a.totalDurationInSeconds)
 
-  // 6. Build response
   return {
     workspaceId,
     workspaceName: adminUserWorkspace.workspace.name,
@@ -666,7 +669,7 @@ async getWorkspaceReport(
     users: userReports,
     summary: {
       totalUsers: userReports.length,
-      totalProjects: uniqueProjects.size,
+      totalProjects: allProjects.size,
       totalDuration: this.formatDuration(totalDurationSeconds),
       totalDurationInSeconds: totalDurationSeconds,
     },
@@ -674,7 +677,13 @@ async getWorkspaceReport(
   }
 }
 
-// Helper method to format duration from seconds to HH:MM:SS
+private calculateDuration(startTime: Date, endTime: Date): number {
+  if (!endTime) return 0
+  const start = new Date(startTime).getTime()
+  const end = new Date(endTime).getTime()
+  return Math.floor((end - start) / 1000)
+}
+
 private formatDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
