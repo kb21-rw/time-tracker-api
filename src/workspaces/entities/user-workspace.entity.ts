@@ -1,4 +1,3 @@
-// src/workspaces/entities/user-workspace.entity.ts
 import {
   Entity,
   ManyToOne,
